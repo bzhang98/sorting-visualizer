@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import Bars from "./Bars";
 import { v4 as uuidv4 } from "uuid";
+import { ArrowUpRight } from "lucide-react";
 
 export default function BubbleSort({
   numBars,
@@ -110,6 +111,39 @@ export default function BubbleSort({
         startSort={startSort}
         pauseSort={pauseSort}
       />
+      <div className="text-lg max-w-[70%] p-8">
+        <p className="mb-4">
+          Bubble Sort is an in-place comparison sorting algorithm that
+          repeatedly compares adjacent elements in a list and swaps them if they
+          are out of order. This process continues until the list is sorted,
+          with each pass moving the next largest element to its correct
+          position, hence its name (the largest element "bubbles" up to the
+          top). While easy to understand and implement, Bubble Sort is
+          inefficient for large datasets due to its repeated comparisons and
+          swaps.
+        </p>
+        <a
+          href="https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/bubble-sort.ts"
+          target="_blank"
+          className="flex gap-2 items-center mb-8 hover:underline"
+        >
+          See the TypeScript implementation here <ArrowUpRight size={24} />
+        </a>
+        <ul>
+          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
+            <strong>Time Complexity:</strong> Worst-case and average-case: O(n²)
+            - occurs when the list is in reverse order or unsorted. Best-case:
+            O(n) - occurs when the list is already sorted, with an optimized
+            version that terminates early if no swaps are needed.
+          </li>
+          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
+            <strong>Space Complexity:</strong> O(1)
+          </li>
+          <li className="py-4 border-t-2 border-b-2 grid grid-cols-[12rem_1fr]">
+            <strong>Stable:</strong> Yes
+          </li>
+        </ul>
+      </div>
     </>
   );
 }

@@ -1,6 +1,7 @@
 import Bars from "./Bars";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { ArrowUpRight } from "lucide-react";
 
 export default function InsertionSort({
   numBars,
@@ -173,6 +174,37 @@ export default function InsertionSort({
         startSort={startSort}
         pauseSort={pauseSort}
       />
+      <div className="text-lg max-w-[70%] p-8">
+        <p className="mb-4">
+          Heap Sort is a comparison-based sorting algorithm that first
+          transforms the list into a binary heap, a tree-like structure where
+          each parent node is larger (for a max-heap) than its child nodes.
+          After building the heap, the algorithm repeatedly swaps the largest
+          element (root) with the last element of the heap and reduces the heap
+          size, restoring the heap property each time. This results in a sorted
+          list as the elements are extracted in descending order.
+        </p>
+        <a
+          href="https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/heap-sort.ts"
+          target="_blank"
+          className="flex gap-2 items-center mb-8 hover:underline"
+        >
+          See the TypeScript implementation here <ArrowUpRight size={24} />
+        </a>
+        <ul>
+          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
+            <strong>Time Complexity:</strong> Worst-case, average-case, and
+            best-case: O(n log n) - occurs because of the heap-building process
+            and the repeated operations of heapifying after each extraction.
+          </li>
+          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
+            <strong>Space Complexity:</strong> O(1)
+          </li>
+          <li className="py-4 border-t-2 border-b-2 grid grid-cols-[12rem_1fr]">
+            <strong>Stable:</strong> No
+          </li>
+        </ul>
+      </div>
     </>
   );
 }

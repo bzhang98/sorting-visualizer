@@ -1,3 +1,4 @@
+import { ArrowUpRight } from "lucide-react";
 import Bars from "./Bars";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -120,6 +121,37 @@ export default function InsertionSort({
         startSort={startSort}
         pauseSort={pauseSort}
       />
+      <div className="text-lg max-w-[70%] p-8">
+        <p className="mb-4">
+          Insertion Sort sorts a list by taking elements one by one from an
+          unsorted section and inserting them into their correct position in a
+          growing sorted section. It's similar to sorting playing cards in your
+          hand: you pick a card and place it in its proper position among the
+          cards already sorted. Insertion Sort is efficient for small or nearly
+          sorted lists, as it can shift elements instead of making many swaps.
+        </p>
+        <a
+          href="https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/insertion-sort.ts"
+          target="_blank"
+          className="flex gap-2 items-center mb-8 hover:underline"
+        >
+          See the TypeScript implementation here <ArrowUpRight size={24} />
+        </a>
+        <ul>
+          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
+            <strong>Time Complexity:</strong> Worst-case and average-case: O(n²)
+            - occurs when the list is in reverse order. Best-case: O(n) - occurs
+            when the list is already sorted, as each element only needs to be
+            compared once.
+          </li>
+          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
+            <strong>Space Complexity:</strong> O(1)
+          </li>
+          <li className="py-4 border-t-2 border-b-2 grid grid-cols-[12rem_1fr]">
+            <strong>Stable:</strong> Yes
+          </li>
+        </ul>
+      </div>
     </>
   );
 }

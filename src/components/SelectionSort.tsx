@@ -1,3 +1,4 @@
+import { ArrowUpRight } from "lucide-react";
 import Bars from "./Bars";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -113,6 +114,38 @@ export default function SelectionSort({
         startSort={startSort}
         pauseSort={pauseSort}
       />
+      <div className="text-lg max-w-[70%] p-8">
+        <p className="mb-4">
+          Selection Sort is a simple comparison-based sorting algorithm that
+          works by repeatedly finding the minimum element from the unsorted
+          portion of the list and swapping it with the first unsorted element.
+          This process continues until the entire list is sorted. Selection Sort
+          is intuitive and easy to understand but performs poorly on large
+          datasets due to the number of comparisons it makes, even if the list
+          is already sorted.
+        </p>
+        <a
+          href="https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/selection-sort.ts"
+          target="_blank"
+          className="flex gap-2 items-center mb-8 hover:underline"
+        >
+          See the TypeScript implementation here <ArrowUpRight size={24} />
+        </a>
+        <ul>
+          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
+            <strong>Time Complexity:</strong> Worst-case, average-case, and
+            best-case: O(n²) - occurs because the algorithm always iterates over
+            the remaining unsorted elements to find the minimum, regardless of
+            the list's initial order.
+          </li>
+          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
+            <strong>Space Complexity:</strong> O(1)
+          </li>
+          <li className="py-4 border-t-2 border-b-2 grid grid-cols-[12rem_1fr]">
+            <strong>Stable:</strong> No
+          </li>
+        </ul>
+      </div>
     </>
   );
 }
