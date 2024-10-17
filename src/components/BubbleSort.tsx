@@ -1,16 +1,17 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { v4 as uuidv4 } from "uuid";
 
-export default function BubbleSort() {
-  const [data, setData] = useState<number[]>([]);
-  const barRefs = useRef<(SVGElement | null)[]>([]);
-
-  useEffect(() => {
-    barRefs.current = barRefs.current.slice(0, data.length);
-  }, [data]);
+export default function BubbleSort({
+  numBars,
+  maxValue,
+}: {
+  numBars: number;
+  maxValue: number;
+}) {
+  const [data, setData] = useState<{ id: string; value: number }[]>([]);
 
   const [comparedIndices, setComparedIndices] = useState<number[]>([]);
-  const maxValue = 100;
 
   const SORTING_STATES = {
     PLAYING: "playing",
@@ -36,10 +37,11 @@ export default function BubbleSort() {
     innerIndexRef.current = 0;
     setComparedIndices([]);
 
-    const newData = Array.from(
-      { length: n },
-      () => Math.floor(Math.random() * maxValue) + 1
-    );
+    const newData = Array.from({ length: n }, () => ({
+      id: uuidv4(), // Generate a unique ID for each object
+      value: Math.floor(Math.random() * maxValue) + 1,
+    }));
+
     setData(newData);
   }, []);
 
@@ -64,13 +66,13 @@ export default function BubbleSort() {
         }
 
         setComparedIndices([j, j + 1]);
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 10));
 
-        if (newData[j] > newData[j + 1]) {
+        if (newData[j].value > newData[j + 1].value) {
           [newData[j], newData[j + 1]] = [newData[j + 1], newData[j]];
 
           setData([...newData]);
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 10));
         }
       }
       // Reset inner loop index at the end of each outer iteration
@@ -90,65 +92,67 @@ export default function BubbleSort() {
   }, []);
 
   useEffect(() => {
-    generateData(20);
+    generateData(numBars);
   }, []);
 
   return (
     <>
       <h1 className="text-4xl text-center font-bold my-16">Bubble Sort</h1>
       <div className="w-full h-[600px] relative">
-        {data.map((value, index) => {
-          const barWidth = window.innerWidth / data.length;
-          const heightPercentage = (value / maxValue) * 100; // Calculate the height percentage
-          const textYPosition =
-            heightPercentage > 5 // Change threshold as needed
-              ? `${100 - heightPercentage + 4}%` // Position inside the rectangle
-              : `${100 - heightPercentage - 2}%`; // Position above the rectangle if too short
-          const textColor = heightPercentage > 40 ? "white" : "black"; // Change threshold as needed
-          return (
-            <motion.svg
-              key={index}
-              className="absolute"
-              ref={(el) => (barRefs.current[index] = el)} // Assign ref for each bar
-              width={barWidth}
-              height="100%"
-              xmlns="http://www.w3.org/2000/svg"
-              layout
-              transition={{ type: "spring", duration: 0.5 }}
-              style={{ left: `${barWidth * index}px` }}
-            >
-              <rect
-                x="25%"
-                y={`${100 - heightPercentage}%`}
-                width="50%"
-                height={`${heightPercentage}%`}
-                fill={`${comparedIndices.includes(index) ? "red" : "green"}`}
-                fillOpacity={
-                  comparedIndices.includes(index)
-                    ? 1
-                    : 0.2 + (0.8 * value) / maxValue
-                }
-              />
-              <text
-                x="50%"
-                y={textYPosition} // Use calculated y position
-                fill={`${
-                  comparedIndices.includes(index) ? "white" : textColor
-                }`}
-                fontSize="16"
-                fontWeight="bold"
-                textAnchor="middle"
-                dominantBaseline="middle"
+        <AnimatePresence initial={false}>
+          {data.map(({ id, value }, index) => {
+            const barWidth = window.innerWidth / data.length;
+            const heightPercentage = (value / maxValue) * 100;
+            const textYPosition =
+              heightPercentage > 5
+                ? `${100 - heightPercentage + 4}%`
+                : `${100 - heightPercentage - 2}%`;
+            const textColor = "black";
+
+            return (
+              <motion.svg
+                key={id}
+                className="absolute"
+                width={barWidth}
+                height="100%"
+                xmlns="http://www.w3.org/2000/svg"
+                initial={{ x: barWidth * index }}
+                animate={{ x: barWidth * index }}
+                transition={{ duration: 0.01 }}
               >
-                {value} {/* Display the value */}
-              </text>
-            </motion.svg>
-          );
-        })}
+                <rect
+                  x="25%"
+                  y={`${100 - heightPercentage}%`}
+                  width="50%"
+                  height={`${heightPercentage}%`}
+                  fill={comparedIndices.includes(index) ? "red" : "green"}
+                  fillOpacity={
+                    comparedIndices.includes(index)
+                      ? 1
+                      : 0.1 + (0.5 * value) / maxValue
+                  }
+                />
+                {barWidth >= 50 && (
+                  <text
+                    x="50%"
+                    y={textYPosition}
+                    fill={textColor}
+                    fontSize="16"
+                    fontWeight="bold"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                  >
+                    {value}
+                  </text>
+                )}
+              </motion.svg>
+            );
+          })}
+        </AnimatePresence>
       </div>
       <button
         onClick={() => {
-          generateData(20);
+          generateData(numBars);
         }}
       >
         Restart

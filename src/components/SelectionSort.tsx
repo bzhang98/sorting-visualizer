@@ -1,16 +1,20 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useState, useCallback, useEffect, useRef } from "react";
+import { v4 as uuidv4 } from "uuid";
 
-export default function SelectionSort() {
-  const [data, setData] = useState<number[]>([]);
-  const barRefs = useRef<(SVGElement | null)[]>([]);
-
-  useEffect(() => {
-    barRefs.current = barRefs.current.slice(0, data.length);
-  }, [data]);
+export default function SelectionSort({
+  numBars,
+  maxValue,
+}: {
+  numBars: number;
+  maxValue: number;
+}) {
+  const [data, setData] = useState<{ id: string; value: number }[]>([]);
 
   const [comparedIndices, setComparedIndices] = useState<number[]>([]);
-  const [firstUnsortedIndex, setFirstUnsortedIndex] = useState(0);
-  const maxValue = 100;
+  const [firstUnsortedIndex, setFirstUnsortedIndex] = useState<null | number>(
+    null
+  );
 
   const SORTING_STATES = {
     PLAYING: "playing",
@@ -32,13 +36,15 @@ export default function SelectionSort() {
     // Reset sorting state
     setSortingState(SORTING_STATES.STOPPED);
     outerIndexRef.current = 0;
-    setFirstUnsortedIndex(0);
-    setComparedIndices([]);
 
-    const newData = Array.from(
-      { length: n },
-      () => Math.floor(Math.random() * maxValue) + 1
-    );
+    setComparedIndices([]);
+    setFirstUnsortedIndex(null);
+
+    const newData = Array.from({ length: n }, () => ({
+      id: uuidv4(), // Generate a unique ID for each object
+      value: Math.floor(Math.random() * maxValue) + 1,
+    }));
+
     setData(newData);
   }, []);
 
@@ -64,18 +70,19 @@ export default function SelectionSort() {
         }
 
         setComparedIndices([j, minIndex]);
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        minIndex = newData[j] < newData[minIndex] ? j : minIndex;
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        minIndex = newData[j].value < newData[minIndex].value ? j : minIndex;
       }
       setComparedIndices([i, minIndex]);
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       [newData[i], newData[minIndex]] = [newData[minIndex], newData[i]];
       setData([...newData]);
       outerIndexRef.current = i;
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 10));
     }
 
     setComparedIndices([]);
+    setFirstUnsortedIndex(null);
     setSortingState(SORTING_STATES.STOPPED);
 
     // Reset indices after completing the sort
@@ -87,71 +94,74 @@ export default function SelectionSort() {
   }, []);
 
   useEffect(() => {
-    generateData(20);
+    generateData(numBars);
   }, []);
 
   return (
     <>
       <h1 className="text-4xl text-center font-bold my-16">Selection Sort</h1>
       <div className="w-full h-[600px] relative">
-        {data.map((value, index) => {
-          const heightPercentage = (value / maxValue) * 100; // Calculate the height percentage
-          const textYPosition =
-            heightPercentage > 5 // Change threshold as needed
-              ? `${100 - heightPercentage + 4}%` // Position inside the rectangle
-              : `${100 - heightPercentage - 2}%`; // Position above the rectangle if too short
-          const textColor = heightPercentage > 40 ? "white" : "black"; // Change threshold as needed
-          return (
-            <svg
-              key={index}
-              ref={(el) => (barRefs.current[index] = el)} // Assign ref for each bar
-              width={`${100 / data.length}%`}
-              height="100%"
-              xmlns="http://www.w3.org/2000/svg"
-              style={{
-                position: "absolute",
-                left: `${(100 / data.length) * index}%`,
-                transition: "left 0.1s ease",
-              }}
-            >
-              <rect
-                x="25%"
-                y={`${100 - heightPercentage}%`}
-                width="50%"
-                height={`${heightPercentage}%`}
-                fill={`${
-                  comparedIndices.includes(index)
-                    ? "red"
-                    : index === firstUnsortedIndex
-                    ? "blue"
-                    : "green"
-                }`}
-                fillOpacity={
-                  comparedIndices.includes(index)
-                    ? 1
-                    : 0.2 + (0.8 * value) / maxValue
-                }
-              />
-              <text
-                x="50%"
-                y={textYPosition} // Use calculated y position
-                fill={`${
-                  comparedIndices.includes(index) ? "black" : textColor
-                }`}
-                fontSize="16"
-                fontWeight="bold"
-                textAnchor="middle"
-                dominantBaseline="middle"
+        <AnimatePresence initial={false}>
+          {data.map(({ id, value }, index) => {
+            const barWidth = window.innerWidth / data.length;
+            const heightPercentage = (value / maxValue) * 100;
+            const textYPosition =
+              heightPercentage > 5
+                ? `${100 - heightPercentage + 4}%`
+                : `${100 - heightPercentage - 2}%`;
+            const textColor = "black";
+
+            return (
+              <motion.svg
+                key={id}
+                className="absolute"
+                width={barWidth}
+                height="100%"
+                xmlns="http://www.w3.org/2000/svg"
+                initial={{ x: barWidth * index }}
+                animate={{ x: barWidth * index }}
+                exit={{ x: barWidth * index }}
+                transition={{ duration: 0.01 }}
               >
-                {value} {/* Display the value */}
-              </text>
-            </svg>
-          );
-        })}
+                <rect
+                  x="25%"
+                  y={`${100 - heightPercentage}%`}
+                  width="50%"
+                  height={`${heightPercentage}%`}
+                  fill={`${
+                    comparedIndices.includes(index)
+                      ? "red"
+                      : index === firstUnsortedIndex
+                      ? "blue"
+                      : "green"
+                  }`}
+                  fillOpacity={
+                    comparedIndices.includes(index)
+                      ? 1
+                      : 0.1 + (0.5 * value) / maxValue
+                  }
+                />
+                {barWidth >= 50 && (
+                  <text
+                    x="50%"
+                    y={textYPosition}
+                    fill={textColor}
+                    fontSize="16"
+                    fontWeight="bold"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                  >
+                    {value}
+                  </text>
+                )}
+              </motion.svg>
+            );
+          })}
+        </AnimatePresence>
       </div>
       <button
         onClick={() => {
-          generateData(20);
+          generateData(numBars);
         }}
       >
         Restart

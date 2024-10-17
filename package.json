@@ -14,7 +14,8 @@
     "framer-motion": "^11.11.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.27.0"
+    "react-router-dom": "^6.27.0",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.25.7",
@@ -23,6 +24,7 @@
     "@types/jest": "^29.5.13",
     "@types/react": "^18.3.10",
     "@types/react-dom": "^18.3.0",
+    "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.11.1",

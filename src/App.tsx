@@ -21,11 +21,17 @@ export default function App() {
         </nav>
       </header>
       <Routes>
-        <Route path="/bubble-sort" element={<BubbleSort />} />
-        <Route path="/selection-sort" element={<SelectionSort />} />
+        <Route
+          path="/bubble-sort"
+          element={<BubbleSort maxValue={100} numBars={50} />}
+        />
+        <Route
+          path="/selection-sort"
+          element={<SelectionSort maxValue={100} numBars={100} />}
+        />
         <Route
           path="/insertion-sort"
-          element={<InsertionSort maxValue={100} numBars={30} />}
+          element={<InsertionSort maxValue={100} numBars={100} />}
         />
       </Routes>
     </Router>
