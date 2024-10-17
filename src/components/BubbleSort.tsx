@@ -137,8 +137,8 @@ export default function BubbleSort({
           <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
             <strong>Time Complexity:</strong> Worst-case and average-case: O(n²)
             - occurs when the list is in reverse order or unsorted. Best-case:
-            O(n) - occurs when the list is already sorted, with an optimized
-            version that terminates early if no swaps are needed.
+            O(n) is possible with an optimized version that terminates early if
+            no swaps are needed.
           </li>
           <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
             <strong>Space Complexity:</strong> O(1)
