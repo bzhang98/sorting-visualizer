@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/sorting_functions/bubble-sort.ts","./src/sorting_functions/heap-sort.ts","./src/sorting_functions/insertion-sort.ts","./src/sorting_functions/merge-sort.ts","./src/sorting_functions/quick-sort.ts","./src/sorting_functions/selection-sort.ts"],"version":"5.6.3"}
