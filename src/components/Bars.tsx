@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
+import { useRef } from "react";
 
 export default function Bars({
   data,
@@ -21,12 +22,14 @@ export default function Bars({
   startSort: () => void;
   pauseSort: () => void;
 }) {
+  const containerRef = useRef<null | HTMLDivElement>(null);
+
   return (
     <>
-      <div className="w-full h-[600px] relative">
+      <div className="w-full h-[600px] relative" ref={containerRef}>
         <AnimatePresence initial={false}>
           {data.map(({ id, value }, index) => {
-            const barWidth = window.innerWidth / data.length;
+            const barWidth = (containerRef.current?.clientWidth ?? 0) / numBars;
             const heightPercentage = (value / maxValue) * 100;
             const textYPosition =
               heightPercentage > 5
