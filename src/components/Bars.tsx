@@ -82,7 +82,7 @@ export default function Bars({
           })}
         </AnimatePresence>
       </div>
-      <div className="controls flex gap-8 p-4">
+      <div className="controls flex gap-8 p-8">
         <button
           onClick={() => {
             generateData(numBars);
