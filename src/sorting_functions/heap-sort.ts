@@ -22,7 +22,7 @@ function percolate(arr: number[], index: number, heapSize: number) {
 }
 
 function heapifyArray(arr: number[]) {
-  let lastIndexWithChildren = Math.floor(arr.length / 2) - 1;
+  const lastIndexWithChildren = Math.floor(arr.length / 2) - 1;
   for (let i = lastIndexWithChildren; i >= 0; i--) {
     percolate(arr, i, arr.length);
   }
