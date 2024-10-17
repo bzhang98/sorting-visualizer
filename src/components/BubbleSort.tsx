@@ -88,7 +88,7 @@ export default function BubbleSort({
     // Reset indices after completing the sort
     outerIndexRef.current = 0;
     innerIndexRef.current = 0;
-  }, [data, sortingStateRef]);
+  }, [data, sortingStateRef, speed]);
 
   const pauseSort = useCallback(() => {
     if (isPlaying()) setSortingState(SORTING_STATES.PAUSED);
@@ -97,6 +97,10 @@ export default function BubbleSort({
   useEffect(() => {
     generateData(numBars);
   }, []);
+
+  useEffect(() => {
+    generateData(numBars);
+  }, [numBars]);
 
   return (
     <>

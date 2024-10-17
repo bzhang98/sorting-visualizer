@@ -97,7 +97,7 @@ export default function InsertionSort({
     // Reset indices after completing the sort
     outerIndexRef.current = 1;
     innerIndexRef.current = null;
-  }, [data, sortingStateRef]);
+  }, [data, sortingStateRef, speed]);
 
   const pauseSort = useCallback(() => {
     if (isPlaying()) setSortingState(SORTING_STATES.PAUSED);
@@ -106,6 +106,10 @@ export default function InsertionSort({
   useEffect(() => {
     generateData(numBars);
   }, []);
+
+  useEffect(() => {
+    generateData(numBars);
+  }, [numBars]);
 
   return (
     <>
