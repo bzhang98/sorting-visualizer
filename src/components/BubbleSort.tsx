@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import Bars from "./Bars";
 import { v4 as uuidv4 } from "uuid";
-import { ArrowUpRight } from "lucide-react";
+import Description from "./Description";
 
 export default function BubbleSort({
   numBars,
@@ -117,7 +117,7 @@ export default function BubbleSort({
 
   return (
     <>
-      <h1 className="text-4xl text-center font-bold my-16">Bubble Sort</h1>
+      <h1 className="text-4xl text-center font-bold mt-8">Bubble Sort</h1>
       <Bars
         data={data}
         maxValue={maxValue}
@@ -128,43 +128,19 @@ export default function BubbleSort({
         startSort={startSorting}
         pauseSort={pauseSorting}
       />
-      <div className="text-lg max-w-[70%] p-8">
-        <p className="mb-4">
-          Bubble Sort is an in-place comparison sorting algorithm. It works by
-          repeatedly comparing adjacent elements and swaps them if they are out
-          of order. This process continues until the list is sorted, with each
-          pass moving the next largest element to its correct position. Hence
-          the largest element "bubbles" up to the top. While easy to understand
-          and implement, Bubble Sort is inefficient for large datasets due to
-          the O(n²) time complexity.
-        </p>
-        <a
-          href="https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/bubble-sort.ts"
-          target="_blank"
-          className="flex gap-2 items-center mb-8 hover:underline"
-        >
-          See the TypeScript implementation here <ArrowUpRight size={24} />
-        </a>
-        <ul>
-          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
-            <strong>Time Complexity:</strong> In the average and worst cases,
-            Bubble Sort is O(n²) - occurs when the list is in reverse order or
-            unsorted. In the best case, Bubble Sort is O(n) - this is possible
-            with an optimization that stops the algorithm if no swaps are made
-            in a pass, i.e. the list is already sorted.
-          </li>
-          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
-            <strong>Space Complexity:</strong> Because Bubble Sort is typically
-            implemented iteratively and does not require any additional memory,
-            it has a O(1) space complexity.
-          </li>
-          <li className="py-4 border-t-2 border-b-2 grid grid-cols-[12rem_1fr]">
-            <strong>Stable:</strong> Yes. Bubble Sort is a stable sorting
-            algorithm. If elements A and B are considered equal, then A precedes
-            B in the sorted list if A appears before B in the input list.
-          </li>
-        </ul>
-      </div>
+      <Description description={description} />
     </>
   );
 }
+
+const description = {
+  description:
+    "Bubble Sort is an in-place comparison sorting algorithm. It works by repeatedly comparing adjacent elements and swaps them if they are out of order. This process continues until the list is sorted, with each pass moving the next largest element to its correct position. Hence the largest element 'bubbles' up to the top. While easy to understand and implement, Bubble Sort is inefficient for large datasets due to the O(n²) time complexity.",
+  link: "https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/bubble-sort.ts",
+  timeComplexity:
+    "In the average and worst cases, Bubble Sort is O(n²). In the best case, Bubble Sort can be O(n) - this is possible with an optimization that stops the algorithm if no swaps are made in any given pass, i.e. the list is already sorted.",
+  spaceComplexity:
+    "Because Bubble Sort is implemented iteratively and does not require any additional memory, it has a O(1) space complexity.",
+  stability:
+    "Yes. Bubble Sort is a stable sorting algorithm. If elements A and B are considered equal, then A precedes B in the sorted list if A appears before B in the input list.",
+};
