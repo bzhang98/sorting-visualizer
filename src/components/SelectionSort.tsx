@@ -112,7 +112,7 @@ export default function SelectionSort({
         maxValue={maxValue}
         comparedIndices={comparedIndices}
         numBars={numBars}
-        highlightedIndex={firstUnsortedIndex}
+        highlightedIndices={[firstUnsortedIndex as number]}
         speed={speed}
         generateData={generateData}
         startSort={startSort}

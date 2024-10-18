@@ -172,7 +172,7 @@ export default function InsertionSort({
         maxValue={maxValue}
         comparedIndices={comparedIndices}
         numBars={numBars}
-        highlightedIndex={lastSortedIndex}
+        highlightedIndices={[lastSortedIndex as number]}
         speed={speed}
         generateData={generateData}
         startSort={startSort}
