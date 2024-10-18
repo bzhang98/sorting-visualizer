@@ -1,5 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useRef } from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 export default function Bars({
   data,
@@ -25,15 +27,41 @@ export default function Bars({
   const containerRef = useRef<null | HTMLDivElement>(null);
 
   return (
-    <>
+    <div className="flex w-[100vw] p-8">
+      <div className="controls flex flex-col justify-end gap-8 px-8">
+        <button
+          onClick={() => {
+            generateData(numBars);
+          }}
+          className="bg-blue-500 text-white px-4 py-2 rounded-md"
+        >
+          Restart
+        </button>
+        <button
+          onClick={() => {
+            startSort();
+          }}
+          className="bg-blue-500 text-white px-4 py-2 rounded-md"
+        >
+          Play
+        </button>
+        <button
+          onClick={() => {
+            pauseSort();
+          }}
+          className="bg-blue-500 text-white px-4 py-2 rounded-md"
+        >
+          Pause
+        </button>
+      </div>
       <div
-        className={`m-auto relative`}
+        className={`m-auto relative grow`}
         ref={containerRef}
-        style={{ width: "90%", aspectRatio: "1 / 0.2" }}
+        style={{ aspectRatio: "1 / 0.4" }}
       >
         <AnimatePresence initial={false}>
           {data.map(({ id, value }, index) => {
-            const barWidth = (containerRef.current?.clientWidth ?? 0) / numBars;
+            const barWidth = (containerRef.current?.offsetWidth ?? 0) / numBars;
             const heightPercentage = (value / maxValue) * 100;
             const textYPosition =
               heightPercentage > 5
@@ -89,32 +117,50 @@ export default function Bars({
           })}
         </AnimatePresence>
       </div>
-      <div className="controls flex gap-8 p-8">
-        <button
-          onClick={() => {
-            generateData(numBars);
-          }}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md"
+      <div className="links flex flex-col justify-between gap-8 px-8">
+        <Link
+          className="bg-green-200 hover:bg-green-400 text-green-900 font-semibold py-2 px-4 rounded-md shadow-sm transition duration-200 text-center flex gap-2"
+          to="/bubble-sort"
         >
-          Restart
-        </button>
-        <button
-          onClick={() => {
-            startSort();
-          }}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md"
+          <ArrowLeft />
+          Bubble Sort
+        </Link>
+        <Link
+          className="bg-green-200 hover:bg-green-400 text-green-900 font-semibold py-2 px-4 rounded-md shadow-sm transition duration-200 text-center flex gap-2"
+          to="/selection-sort"
         >
-          Play
-        </button>
-        <button
-          onClick={() => {
-            pauseSort();
-          }}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md"
+          <ArrowLeft />
+          Selection Sort
+        </Link>
+        <Link
+          className="bg-green-200 hover:bg-green-400 text-green-900 font-semibold py-2 px-4 rounded-md shadow-sm transition duration-200 text-center flex gap-2"
+          to="/insertion-sort"
         >
-          Pause
-        </button>
+          <ArrowLeft />
+          Insertion Sort
+        </Link>
+        <Link
+          className="bg-green-200 hover:bg-green-400 text-green-900 font-semibold py-2 px-4 rounded-md shadow-sm transition duration-200 text-center flex gap-2"
+          to="/heap-sort"
+        >
+          <ArrowLeft />
+          Heap Sort
+        </Link>
+        <Link
+          className="bg-green-200 hover:bg-green-400 text-green-900 font-semibold py-2 px-4 rounded-md shadow-sm transition duration-200 text-center flex gap-2"
+          to="/merge-sort"
+        >
+          <ArrowLeft />
+          Merge Sort
+        </Link>
+        <Link
+          className="bg-green-200 hover:bg-green-400 text-green-900 font-semibold py-2 px-4 rounded-md shadow-sm transition duration-200 text-center flex gap-2"
+          to="/quick-sort"
+        >
+          <ArrowLeft />
+          Quick Sort
+        </Link>
       </div>
-    </>
+    </div>
   );
 }
