@@ -1,7 +1,7 @@
-import { ArrowUpRight } from "lucide-react";
 import Bars from "./Bars";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
+import Description from "./Description";
 
 export default function SelectionSort({
   numBars,
@@ -143,42 +143,19 @@ export default function SelectionSort({
         startSort={startSorting}
         pauseSort={pauseSorting}
       />
-      <div className="text-lg max-w-[70%] p-8">
-        <p className="mb-4">
-          Selection Sort is an in-place comparison sorting algorithm. It works
-          by repeatedly finding the minimum element from the unsorted portion of
-          the list and swapping it with the first unsorted element. After each
-          pass, the smallest element is selected and sorted. This process
-          continues until the entire list is sorted. Like Bubble Sort, Selection
-          Sort is easy to understand and implement, but it is inefficient on
-          large lists due to its O(n²) time complexity.
-        </p>
-        <a
-          href="https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/selection-sort.ts"
-          target="_blank"
-          className="flex gap-2 items-center mb-8 hover:underline"
-        >
-          See the TypeScript implementation here <ArrowUpRight size={24} />
-        </a>
-        <ul>
-          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
-            <strong>Time Complexity:</strong> Selection sort is O(n²) in all
-            cases (best, average, and worst). The algorithm always has to make
-            the same number of comparisons to find the minimum value in the
-            unsorted partition, regardless of the input data.
-          </li>
-          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
-            <strong>Space Complexity:</strong> Because Selection Sort is
-            implemented iteratively and does not require any additional memory,
-            it has a O(1) space complexity.
-          </li>
-          <li className="py-4 border-t-2 border-b-2 grid grid-cols-[12rem_1fr]">
-            <strong>Stable:</strong> No. Selection Sort is not stable because it
-            swaps non-adjacent elements. This can result in the relative order
-            of equal elements changing.
-          </li>
-        </ul>
-      </div>
+      <Description description={description} />
     </>
   );
 }
+
+const description = {
+  description:
+    "Selection Sort is an in-place comparison sorting algorithm. It worksby repeatedly finding the minimum element from the unsorted portion of the list and swapping it with the first unsorted element. After each pass, the smallest element is selected and sorted. This process continues until the entire list is sorted. Like Bubble Sort, Selection Sort is easy to understand and implement, but it is inefficient on large lists due to its O(n²) time complexity.",
+  link: "https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/selection-sort.ts",
+  timeComplexity:
+    "Selection sort is O(n²) in all cases (best, average, and worst). The algorithm always has to make the same number of comparisons to find the minimum value in the unsorted partition, regardless of the input data.",
+  spaceComplexity:
+    "Because Selection Sort is implemented iteratively and does not require any additional memory, it has a O(1) space complexity.",
+  stability:
+    "No. Selection Sort is not stable because it swaps non-adjacent elements. This can result in the relative order of equal elements changing.",
+};

@@ -1,7 +1,7 @@
-import { ArrowUpRight } from "lucide-react";
 import Bars from "./Bars";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
+import Description from "./Description";
 
 export default function SelectionSort({
   numBars,
@@ -151,41 +151,19 @@ export default function SelectionSort({
         startSort={startSorting}
         pauseSort={pauseSorting}
       />
-      <div className="text-lg max-w-[70%] p-8">
-        <p className="mb-4">
-          Insertion Sort is an in-place comparison sorting algorithm. It sorts a
-          list by taking elements one by one from an unsorted section and
-          inserting them into their correct position in a growing sorted
-          section. While the average and worst-case time complexity of Insertion
-          Sort is O(n²), it is more efficient than Bubble Sort and Selection
-          Sort for small lists and nearly-sorted lists.
-        </p>
-        <a
-          href="https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/insertion-sort.ts"
-          target="_blank"
-          className="flex gap-2 items-center mb-8 hover:underline"
-        >
-          See the TypeScript implementation here <ArrowUpRight size={24} />
-        </a>
-        <ul>
-          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
-            <strong>Time Complexity:</strong> In the average and worst cases,
-            Insertion Sort is O(n²). The best-case time complexity is O(n) when
-            the list is already sorted, as only one comparison is needed between
-            each element and its predecessor.
-          </li>
-          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
-            <strong>Space Complexity:</strong> Because Insertion Sort is
-            implemented iteratively and does not require any additional memory,
-            it has a O(1) space complexity.
-          </li>
-          <li className="py-4 border-t-2 border-b-2 grid grid-cols-[12rem_1fr]">
-            <strong>Stable:</strong> Yes. Insertion Sort is a stable sorting
-            algorithm. If two elements are equal, their relative order is
-            preserved.
-          </li>
-        </ul>
-      </div>
+      <Description description={description} />
     </>
   );
 }
+
+const description = {
+  description:
+    "Insertion Sort is an in-place comparison sorting algorithm. It sorts a list by taking elements one by one from an unsorted section and inserting them into their correct position in a growing sorted section. While the average and worst-case time complexity of Insertion Sort is O(n²), it is more efficient than Bubble Sort and Selection Sort for small lists and nearly-sorted lists.",
+  link: "https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/insertion-sort.ts",
+  timeComplexity:
+    "In the average and worst cases, Insertion Sort is O(n²). The best-case time complexity is O(n) when the list is already sorted, as only one comparison is needed between each element and its predecessor.",
+  spaceComplexity:
+    "Because Insertion Sort is implemented iteratively and does not require any additional memory, it has a O(1) space complexity.",
+  stability:
+    "Yes. Insertion Sort is a stable sorting algorithm. If two elements are equal, their relative order is preserved.",
+};
