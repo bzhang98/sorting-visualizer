@@ -6,7 +6,7 @@ export default function Bars({
   maxValue,
   comparedIndices,
   numBars,
-  highlightedIndex,
+  highlightedIndices,
   speed,
   generateData,
   startSort,
@@ -16,7 +16,7 @@ export default function Bars({
   maxValue: number;
   comparedIndices: number[];
   numBars: number;
-  highlightedIndex?: number;
+  highlightedIndices?: number[];
   speed: number;
   generateData: (n: number) => void;
   startSort: () => void;
@@ -26,7 +26,11 @@ export default function Bars({
 
   return (
     <>
-      <div className="w-full h-[600px] relative" ref={containerRef}>
+      <div
+        className={`m-auto relative`}
+        ref={containerRef}
+        style={{ width: "90%", aspectRatio: "1 / 0.2" }}
+      >
         <AnimatePresence initial={false}>
           {data.map(({ id, value }, index) => {
             const barWidth = (containerRef.current?.clientWidth ?? 0) / numBars;
@@ -56,8 +60,8 @@ export default function Bars({
                   fill={`${
                     comparedIndices.includes(index)
                       ? "red"
-                      : highlightedIndex !== undefined &&
-                        index === highlightedIndex
+                      : highlightedIndices !== undefined &&
+                        highlightedIndices.includes(index)
                       ? "blue"
                       : "green"
                   }`}
