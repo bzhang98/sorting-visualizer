@@ -5,8 +5,8 @@ function useWindowWidth() {
 
   useEffect(() => {
     const handleResize = () => {
-      setWindowWidth(screen.width);
-      console.log(screen.width);
+      setWindowWidth(window.innerWidth);
+      console.log(window.innerWidth);
     };
 
     window.addEventListener("resize", handleResize);
