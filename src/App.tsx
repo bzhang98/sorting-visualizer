@@ -3,7 +3,6 @@ import SelectionSort from "./components/SelectionSort";
 import InsertionSort from "./components/InsertionSort";
 import HeapSort from "./components/HeapSort";
 import MergeSort from "./components/MergeSort";
-import BubbleSortD3 from "./components/BubbleSortD3";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useCallback, useState } from "react";
