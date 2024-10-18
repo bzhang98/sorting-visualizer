@@ -1,7 +1,7 @@
-import { ArrowUpRight } from "lucide-react";
 import Bars from "./Bars";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
+import Description from "./Description";
 
 export default function QuickSort({
   numBars,
@@ -118,43 +118,19 @@ export default function QuickSort({
         startSort={startSort}
         pauseSort={pauseSort}
       />
-      <div className="text-lg max-w-[70%] p-8">
-        <p className="mb-4">
-          Quick Sort sorts a list by selecting a "pivot" element and
-          partitioning the remaining elements into two subarrays: those less
-          than the pivot and those greater than or equal to it. It then
-          recursively sorts each subarray. The pivot acts as a divider, ensuring
-          that all elements to its left are smaller and those to its right are
-          larger. This process continues until all elements are sorted. Quick
-          Sort is efficient for large datasets and works well when the pivot
-          divides the list into nearly equal parts.
-        </p>
-        <a
-          href="https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/quick-sort-inplace.ts"
-          target="_blank"
-          className="flex gap-2 items-center mb-8 hover:underline"
-        >
-          See the TypeScript implementation here <ArrowUpRight size={24} />
-        </a>
-        <ul>
-          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
-            <strong>Time Complexity:</strong> Worst-case: O(n²) - occurs when
-            the pivot consistently selects the smallest or largest element, such
-            as when the list is already sorted or nearly sorted. This can be
-            mitigated through better pivot selection strategies including
-            randomization or the median-of-three method. Average-case and
-            best-case: O(n log n) when the pivot consistently divides the list
-            into two nearly equal parts.
-          </li>
-          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
-            <strong>Space Complexity:</strong> O(n log n) due to the recursion
-            stack.
-          </li>
-          <li className="py-4 border-t-2 border-b-2 grid grid-cols-[12rem_1fr]">
-            <strong>Stable:</strong> No
-          </li>
-        </ul>
-      </div>
+      <Description description={description} />
     </>
   );
 }
+
+const description = {
+  description:
+    "Quick Sort is a divide-and-conquer comparison sorting algorithm. It sorts a list by selecting a 'pivot' element, partitioning the list into two halves—elements less than the pivot and elements greater than the pivot—and recursively sorting the sublists. Quick Sort is known for its efficiency on average and is often used in practice due to its low overhead and in-place sorting.",
+  link: "https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/quick-sort-inplace.ts",
+  timeComplexity:
+    "In the average and best cases, Quick Sort has a time complexity of O(n log n) due to the balanced partitioning of the list. However, in the worst case (e.g., when the pivot selection results in highly unbalanced partitions), its time complexity is O(n²).",
+  spaceComplexity:
+    "Quick Sort has a space complexity of O(log n) due to the recursive calls in the stack when implemented in-place. If implemented with additional memory for partitions, space complexity can increase.",
+  stability:
+    "No. Quick Sort is not a stable sorting algorithm. Equal elements might not retain their relative order during the partitioning process.",
+};

@@ -1,7 +1,7 @@
-import { ArrowUpRight } from "lucide-react";
 import Bars from "./Bars";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
+import Description from "./Description";
 
 export default function MergeSort({
   numBars,
@@ -16,9 +16,6 @@ export default function MergeSort({
 
   const [leftIndices, setLeftIndices] = useState<number[]>([]);
   const [rightIndices, setRightIndices] = useState<number[]>([]);
-  const [lastSortedIndex, setLastSortedIndex] = useState<undefined | number>(
-    undefined
-  );
 
   const SORTING_STATES = {
     PLAYING: "playing",
@@ -40,7 +37,6 @@ export default function MergeSort({
     setSortingState(SORTING_STATES.STOPPED);
     outerIndexRef.current = 0;
     innerIndexRef.current = null;
-    setLastSortedIndex(undefined);
     setLeftIndices([]);
     setRightIndices([]);
 
@@ -113,7 +109,6 @@ export default function MergeSort({
 
     setLeftIndices([]);
     setRightIndices([]);
-    setLastSortedIndex(undefined);
     setSortingState(SORTING_STATES.STOPPED);
 
     // Reset indices after completing the sort
@@ -147,40 +142,19 @@ export default function MergeSort({
         startSort={startSort}
         pauseSort={pauseSort}
       />
-      <div className="text-lg max-w-[70%] p-8">
-        <p className="mb-4">
-          Merge Sort sorts a list by dividing it into progressively larger
-          sorted sublists and then merging these sorted sublists together. The
-          bottom-up implementation starts by treating each individual element as
-          a sorted sublist, then merges adjacent sublists of increasing size
-          until the entire list is sorted. What you see is this process in
-          action—small groups being merged into larger sorted groups until they
-          form one fully sorted list. Merge Sort is efficient for larger lists
-          because it divides the problem into smaller parts and handles them
-          systematically.
-        </p>
-        <a
-          href="https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/merge-sort.ts"
-          target="_blank"
-          className="flex gap-2 items-center mb-8 hover:underline"
-        >
-          See the TypeScript implementation here <ArrowUpRight size={24} />
-        </a>
-        <ul>
-          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
-            <strong>Time Complexity:</strong> Worst-case, best-case, and
-            average-case: O(n log n) - due to the repeated division and merging
-            of sublists.
-          </li>
-          <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
-            <strong>Space Complexity:</strong> O(n) - extra space is required
-            for temporary arrays during the merging process.
-          </li>
-          <li className="py-4 border-t-2 border-b-2 grid grid-cols-[12rem_1fr]">
-            <strong>Stable:</strong> Yes
-          </li>
-        </ul>
-      </div>
+      <Description description={description} />
     </>
   );
 }
+
+const description = {
+  description:
+    "Merge Sort is a divide-and-conquer comparison sorting algorithm. It works by recursively splitting the input list into smaller sublists until each sublist contains a single element. It then merges these sublists in a sorted manner to produce a final sorted list. Merge Sort is well-suited for large datasets due to its predictable time complexity.",
+  link: "https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/merge-sort.ts",
+  timeComplexity:
+    "Merge Sort has a time complexity of O(n log n) in all cases (best, average, and worst). This is due to the process of splitting the list (log n) and merging the sublists (n).",
+  spaceComplexity:
+    "Merge Sort has a space complexity of O(n) because it requires additional memory for the temporary arrays used during the merging process.",
+  stability:
+    "Yes. Merge Sort is a stable sorting algorithm. Equal elements retain their relative order during the merging process.",
+};
