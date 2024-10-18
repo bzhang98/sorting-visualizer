@@ -13,94 +13,112 @@ export default function BubbleSort({
   speed: number;
 }) {
   const [data, setData] = useState<{ id: string; value: number }[]>([]);
-
   const [comparedIndices, setComparedIndices] = useState<number[]>([]);
+  const isSorting = useRef<"idle" | "playing" | "paused">("idle");
+  const sortGeneratorRef = useRef<Generator | null>(null);
+  const animationFrameId = useRef<number | null>(null);
 
-  const SORTING_STATES = {
-    PLAYING: "playing",
-    PAUSED: "paused",
-    STOPPED: "stopped",
-  };
-
-  const sortingStateRef = useRef(SORTING_STATES.STOPPED);
-  const outerIndexRef = useRef(0);
-  const innerIndexRef = useRef(0);
-
-  const setSortingState = (state: string) => {
-    sortingStateRef.current = state;
-  };
-  const isPlaying = () => sortingStateRef.current === SORTING_STATES.PLAYING;
-  const isPaused = () => sortingStateRef.current === SORTING_STATES.PAUSED;
-  const isStopped = () => sortingStateRef.current === SORTING_STATES.STOPPED;
-
-  const generateData = useCallback((n: number) => {
-    // Reset sorting state
-    setSortingState(SORTING_STATES.STOPPED);
-    outerIndexRef.current = 0;
-    innerIndexRef.current = 0;
+  const generateData = useCallback(() => {
     setComparedIndices([]);
+    isSorting.current = "idle";
+    if (animationFrameId.current) {
+      cancelAnimationFrame(animationFrameId.current);
+    }
 
-    const newData = Array.from({ length: n }, () => ({
-      id: uuidv4(), // Generate a unique ID for each object
+    const newData = Array.from({ length: numBars }, () => ({
+      id: uuidv4(),
       value: Math.floor(Math.random() * maxValue) + 1,
     }));
 
     setData(newData);
-  }, []);
+    sortGeneratorRef.current = null;
+  }, [numBars, maxValue]);
 
-  const startSort = useCallback(async () => {
-    if (isPlaying()) return; // Prevent starting if already sorting
-    setSortingState(SORTING_STATES.PLAYING);
+  useEffect(() => {
+    generateData();
+  }, [generateData]);
 
-    let newData = [...data];
-    const len = newData.length;
+  type BubbleSortYield = {
+    array: { id: string; value: number }[];
+    action: "compare" | "swap" | "next" | "complete";
+    indices: number[];
+  };
 
-    for (let i = outerIndexRef.current; i < len; i++) {
-      for (let j = innerIndexRef.current; j < len - i - 1; j++) {
-        if (isPaused()) {
-          // Save current indices for resuming later
-          outerIndexRef.current = i;
-          innerIndexRef.current = j;
-          return;
+  function* bubbleSortGenerator(
+    arr: { id: string; value: number }[]
+  ): Generator<BubbleSortYield> {
+    const array = [...arr];
+    for (let i = 0; i < array.length - 1; i++) {
+      for (let j = 0; j < array.length - i - 1; j++) {
+        yield {
+          array: [...array],
+          action: "compare",
+          indices: [j, j + 1],
+        };
+
+        if (array[j].value > array[j + 1].value) {
+          [array[j], array[j + 1]] = [array[j + 1], array[j]];
+          yield {
+            array: [...array],
+            action: "swap",
+            indices: [j, j + 1],
+          };
         }
 
-        if (isStopped()) {
-          return;
-        }
-
-        setComparedIndices([j, j + 1]);
-        await new Promise((resolve) => setTimeout(resolve, 250 / speed));
-
-        if (newData[j].value > newData[j + 1].value) {
-          [newData[j], newData[j + 1]] = [newData[j + 1], newData[j]];
-
-          setData([...newData]);
-          await new Promise((resolve) => setTimeout(resolve, 250 / speed));
-        }
+        yield {
+          array: [...array],
+          action: "next",
+          indices: [],
+        };
       }
-      // Reset inner loop index at the end of each outer iteration
-      innerIndexRef.current = 0;
+    }
+    return { array, action: "complete", indices: [] };
+  }
+
+  const step = useCallback(() => {
+    if (!sortGeneratorRef.current || isSorting.current !== "playing") return;
+
+    const next =
+      sortGeneratorRef.current.next() as IteratorResult<BubbleSortYield>;
+    if (!next.done) {
+      const { array, action, indices } = next.value;
+      setData(array);
+      setComparedIndices(indices);
+
+      if (action !== "next") {
+        animationFrameId.current = requestAnimationFrame(() => {
+          setTimeout(step, 250 / speed);
+        });
+      } else {
+        step();
+      }
+    } else {
+      isSorting.current = "idle";
+      setComparedIndices([]);
+    }
+  }, [speed, isSorting]);
+
+  const startSorting = useCallback(() => {
+    if (isSorting.current === "playing") return;
+
+    if (isSorting.current === "paused") {
+      isSorting.current = "playing";
+      step();
+      return;
     }
 
+    isSorting.current = "playing";
+    sortGeneratorRef.current = bubbleSortGenerator([...data]);
+    step();
+  }, [isSorting, data, step]);
+
+  const pauseSorting = useCallback(() => {
+    isSorting.current = "paused";
     setComparedIndices([]);
-    setSortingState(SORTING_STATES.STOPPED);
-
-    // Reset indices after completing the sort
-    outerIndexRef.current = 0;
-    innerIndexRef.current = 0;
-  }, [data, sortingStateRef, speed]);
-
-  const pauseSort = useCallback(() => {
-    if (isPlaying()) setSortingState(SORTING_STATES.PAUSED);
-  }, []);
-
-  useEffect(() => {
-    generateData(numBars);
-  }, []);
-
-  useEffect(() => {
-    generateData(numBars);
-  }, [numBars]);
+    if (animationFrameId.current) {
+      cancelAnimationFrame(animationFrameId.current);
+    }
+  }, [isSorting]);
 
   return (
     <>
@@ -112,19 +130,18 @@ export default function BubbleSort({
         numBars={numBars}
         speed={speed}
         generateData={generateData}
-        startSort={startSort}
-        pauseSort={pauseSort}
+        startSort={startSorting}
+        pauseSort={pauseSorting}
       />
       <div className="text-lg max-w-[70%] p-8">
         <p className="mb-4">
-          Bubble Sort is an in-place comparison sorting algorithm that
-          repeatedly compares adjacent elements in a list and swaps them if they
-          are out of order. This process continues until the list is sorted,
-          with each pass moving the next largest element to its correct
-          position, hence its name (the largest element "bubbles" up to the
-          top). While easy to understand and implement, Bubble Sort is
-          inefficient for large datasets due to its repeated comparisons and
-          swaps.
+          Bubble Sort is an in-place comparison sorting algorithm. It works by
+          repeatedly comparing adjacent elements and swaps them if they are out
+          of order. This process continues until the list is sorted, with each
+          pass moving the next largest element to its correct position. Hence
+          the largest element "bubbles" up to the top. While easy to understand
+          and implement, Bubble Sort is inefficient for large datasets due to
+          the O(n²) time complexity.
         </p>
         <a
           href="https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/bubble-sort.ts"
@@ -135,16 +152,21 @@ export default function BubbleSort({
         </a>
         <ul>
           <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
-            <strong>Time Complexity:</strong> Worst-case and average-case: O(n²)
-            - occurs when the list is in reverse order or unsorted. Best-case:
-            O(n) is possible with an optimized version that terminates early if
-            no swaps are needed.
+            <strong>Time Complexity:</strong> In the average and worst cases,
+            Bubble Sort is O(n²) - occurs when the list is in reverse order or
+            unsorted. In the best case, Bubble Sort is O(n) - this is possible
+            with an optimization that stops the algorithm if no swaps are made
+            in a pass, i.e. the list is already sorted.
           </li>
           <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
-            <strong>Space Complexity:</strong> O(1)
+            <strong>Space Complexity:</strong> Because Bubble Sort is typically
+            implemented iteratively and does not require any additional memory,
+            it has a O(1) space complexity.
           </li>
           <li className="py-4 border-t-2 border-b-2 grid grid-cols-[12rem_1fr]">
-            <strong>Stable:</strong> Yes
+            <strong>Stable:</strong> Yes. Bubble Sort is a stable sorting
+            algorithm. If elements A and B are considered equal, then A precedes
+            B in the sorted list if A appears before B in the input list.
           </li>
         </ul>
       </div>
