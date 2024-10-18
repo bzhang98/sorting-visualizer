@@ -4,7 +4,6 @@ import InsertionSort from "./components/InsertionSort";
 import HeapSort from "./components/HeapSort";
 import MergeSort from "./components/MergeSort";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { Link } from "react-router-dom";
 import { useCallback, useState } from "react";
 import QuickSort from "./components/QuickSort";
 import useWindowWidth from "./hooks/use-window-width";
@@ -41,28 +40,6 @@ export default function App() {
 
   return (
     <Router>
-      <header className="p-8">
-        <nav className="flex gap-4">
-          <Link className="hover:underline" to="/bubble-sort">
-            Bubble Sort
-          </Link>
-          <Link className="hover:underline" to="/selection-sort">
-            Selection Sort
-          </Link>
-          <Link className="hover:underline" to="/insertion-sort">
-            Insertion Sort
-          </Link>
-          <Link className="hover:underline" to="/heap-sort">
-            Heap Sort
-          </Link>
-          <Link className="hover:underline" to="/merge-sort">
-            Merge Sort
-          </Link>
-          <Link className="hover:underline" to="/quick-sort">
-            Quick Sort (In Place)
-          </Link>
-        </nav>
-      </header>
       <div className="px-8 flex flex-col gap-4 w-1/3">
         <h2 className="text-2xl font-semibold">Settings</h2>
         <div className="flex flex-col gap-2">
