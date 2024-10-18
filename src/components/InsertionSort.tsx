@@ -3,7 +3,7 @@ import Bars from "./Bars";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 
-export default function InsertionSort({
+export default function SelectionSort({
   numBars,
   maxValue,
   speed,
@@ -13,126 +13,152 @@ export default function InsertionSort({
   speed: number;
 }) {
   const [data, setData] = useState<{ id: string; value: number }[]>([]);
-
   const [comparedIndices, setComparedIndices] = useState<number[]>([]);
-  const [lastSortedIndex, setLastSortedIndex] = useState<undefined | number>(
-    undefined
-  );
+  const [highlightedIndices, setHighlightedIndices] = useState<number[]>([]);
+  const isSorting = useRef<"idle" | "playing" | "paused">("idle");
+  const sortGeneratorRef = useRef<Generator | null>(null);
+  const animationFrameId = useRef<number | null>(null);
 
-  const SORTING_STATES = {
-    PLAYING: "playing",
-    PAUSED: "paused",
-    STOPPED: "stopped",
-  };
-
-  const sortingStateRef = useRef(SORTING_STATES.STOPPED);
-  const outerIndexRef = useRef(1);
-  const innerIndexRef = useRef<null | number>(null);
-
-  const setSortingState = (state: string) => {
-    sortingStateRef.current = state;
-  };
-  const isPlaying = () => sortingStateRef.current === SORTING_STATES.PLAYING;
-  const isPaused = () => sortingStateRef.current === SORTING_STATES.PAUSED;
-  const isStopped = () => sortingStateRef.current === SORTING_STATES.STOPPED;
-
-  const generateData = useCallback((n: number) => {
-    // Reset sorting state
-    setSortingState(SORTING_STATES.STOPPED);
-    outerIndexRef.current = 1;
-    innerIndexRef.current = null;
-    setLastSortedIndex(undefined);
+  const generateData = useCallback(() => {
     setComparedIndices([]);
+    setHighlightedIndices([]);
+    isSorting.current = "idle";
+    if (animationFrameId.current) {
+      cancelAnimationFrame(animationFrameId.current);
+    }
 
-    const newData = Array.from({ length: n }, () => ({
-      id: uuidv4(), // Generate a unique ID for each object
+    const newData = Array.from({ length: numBars }, () => ({
+      id: uuidv4(),
       value: Math.floor(Math.random() * maxValue) + 1,
     }));
 
     setData(newData);
+    sortGeneratorRef.current = null;
+  }, [numBars, maxValue]);
+
+  useEffect(() => {
+    generateData();
   }, []);
 
-  const startSort = useCallback(async () => {
-    if (isPlaying()) return; // Prevent starting if already sorting
-    setSortingState(SORTING_STATES.PLAYING);
+  type InsertionSortYield = {
+    array: { id: string; value: number }[];
+    action: "compare" | "swap" | "next" | "complete";
+    comparedIndices: number[];
+    highlightedIndices: number[];
+  };
 
-    let newData = [...data];
-    const len = newData.length;
+  function* insertionSortGenerator(
+    arr: { id: string; value: number }[]
+  ): Generator<InsertionSortYield> {
+    const array = [...arr];
 
-    for (let i = outerIndexRef.current; i < len; i++) {
-      setLastSortedIndex(i);
-      let j = innerIndexRef.current || i;
-      innerIndexRef.current = null;
+    for (let i = 1; i < array.length; i++) {
+      for (let j = i; j > 0; j--) {
+        yield {
+          array,
+          action: "compare",
+          comparedIndices: [j - 1, j],
+          highlightedIndices: [i],
+        };
 
-      setComparedIndices([j, j - 1]);
-      await new Promise((resolve) => setTimeout(resolve, 250 / speed));
-
-      while (j > 0 && newData[j - 1].value > newData[j].value) {
-        if (isPaused()) {
-          outerIndexRef.current = i;
-          innerIndexRef.current = j;
-          return;
+        if (array[j - 1].value > array[j].value) {
+          [array[j - 1], array[j]] = [array[j], array[j - 1]];
+          yield {
+            array,
+            action: "swap",
+            comparedIndices: [j - 1, j],
+            highlightedIndices: [i],
+          };
+          yield {
+            array,
+            action: "swap",
+            comparedIndices: [j - 1, j],
+            highlightedIndices: [i],
+          };
+        } else {
+          yield {
+            array,
+            action: "next",
+            comparedIndices: [j - 1, j],
+            highlightedIndices: [i],
+          };
+          break;
         }
-
-        if (isStopped()) {
-          return;
-        }
-
-        setComparedIndices([j, j - 1]);
-
-        [newData[j - 1], newData[j]] = [newData[j], newData[j - 1]];
-        setData(newData);
-
-        await new Promise((resolve) => setTimeout(resolve, 250 / speed));
-        j--;
-        setComparedIndices([j, j - 1]);
-        await new Promise((resolve) => setTimeout(resolve, 250 / speed));
       }
     }
 
-    setComparedIndices([]);
-    setLastSortedIndex(undefined);
-    setSortingState(SORTING_STATES.STOPPED);
+    return {
+      array,
+      action: "complete",
+      comparedIndices: [],
+      highlightedIndices: [],
+    };
+  }
 
-    // Reset indices after completing the sort
-    outerIndexRef.current = 1;
-    innerIndexRef.current = null;
-  }, [data, sortingStateRef, speed]);
+  const step = useCallback(() => {
+    if (!sortGeneratorRef.current || isSorting.current !== "playing") return;
 
-  const pauseSort = useCallback(() => {
-    if (isPlaying()) setSortingState(SORTING_STATES.PAUSED);
-  }, []);
+    const next =
+      sortGeneratorRef.current.next() as IteratorResult<InsertionSortYield>;
+    if (!next.done) {
+      const { array, comparedIndices, highlightedIndices } = next.value;
+      setData(array);
+      setComparedIndices(comparedIndices);
+      setHighlightedIndices(highlightedIndices);
 
-  useEffect(() => {
-    generateData(numBars);
-  }, []);
+      animationFrameId.current = requestAnimationFrame(() => {
+        setTimeout(step, 250 / speed);
+      });
+    } else {
+      isSorting.current = "idle";
+      setComparedIndices([]);
+      setHighlightedIndices([]);
+    }
+  }, [speed, isSorting]);
 
-  useEffect(() => {
-    generateData(numBars);
-  }, [numBars]);
+  const startSorting = useCallback(() => {
+    if (isSorting.current === "playing") return;
+
+    if (isSorting.current === "paused") {
+      isSorting.current = "playing";
+      step();
+      return;
+    }
+
+    isSorting.current = "playing";
+    sortGeneratorRef.current = insertionSortGenerator([...data]);
+    step();
+  }, [isSorting, data, step]);
+
+  const pauseSorting = useCallback(() => {
+    isSorting.current = "paused";
+    if (animationFrameId.current) {
+      cancelAnimationFrame(animationFrameId.current);
+    }
+  }, [isSorting]);
 
   return (
     <>
-      <h1 className="text-4xl text-center font-bold my-16">Insertion Sort</h1>
+      <h1 className="text-4xl text-center font-bold mt-8">Insertion Sort</h1>
       <Bars
         data={data}
         maxValue={maxValue}
         comparedIndices={comparedIndices}
         numBars={numBars}
-        highlightedIndices={[lastSortedIndex as number]}
+        highlightedIndices={highlightedIndices}
         speed={speed}
         generateData={generateData}
-        startSort={startSort}
-        pauseSort={pauseSort}
+        startSort={startSorting}
+        pauseSort={pauseSorting}
       />
       <div className="text-lg max-w-[70%] p-8">
         <p className="mb-4">
-          Insertion Sort sorts a list by taking elements one by one from an
-          unsorted section and inserting them into their correct position in a
-          growing sorted section. It's similar to sorting playing cards in your
-          hand: you pick a card and place it in its proper position among the
-          cards already sorted. Insertion Sort is efficient for small or nearly
-          sorted lists, as it can shift elements instead of making many swaps.
+          Insertion Sort is an in-place comparison sorting algorithm. It sorts a
+          list by taking elements one by one from an unsorted section and
+          inserting them into their correct position in a growing sorted
+          section. While the average and worst-case time complexity of Insertion
+          Sort is O(n²), it is more efficient than Bubble Sort and Selection
+          Sort for small lists and nearly-sorted lists.
         </p>
         <a
           href="https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/insertion-sort.ts"
@@ -143,16 +169,20 @@ export default function InsertionSort({
         </a>
         <ul>
           <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
-            <strong>Time Complexity:</strong> Worst-case and average-case: O(n²)
-            - occurs when the list is in reverse order. Best-case: O(n) - occurs
-            when the list is already sorted, as each element only needs to be
-            compared once.
+            <strong>Time Complexity:</strong> In the average and worst cases,
+            Insertion Sort is O(n²). The best-case time complexity is O(n) when
+            the list is already sorted, as only one comparison is needed between
+            each element and its predecessor.
           </li>
           <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
-            <strong>Space Complexity:</strong> O(1)
+            <strong>Space Complexity:</strong> Because Insertion Sort is
+            implemented iteratively and does not require any additional memory,
+            it has a O(1) space complexity.
           </li>
           <li className="py-4 border-t-2 border-b-2 grid grid-cols-[12rem_1fr]">
-            <strong>Stable:</strong> Yes
+            <strong>Stable:</strong> Yes. Insertion Sort is a stable sorting
+            algorithm. If two elements are equal, their relative order is
+            preserved.
           </li>
         </ul>
       </div>

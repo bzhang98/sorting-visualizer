@@ -13,120 +13,145 @@ export default function SelectionSort({
   speed: number;
 }) {
   const [data, setData] = useState<{ id: string; value: number }[]>([]);
-
   const [comparedIndices, setComparedIndices] = useState<number[]>([]);
-  const [firstUnsortedIndex, setFirstUnsortedIndex] = useState<
-    undefined | number
-  >(undefined);
+  const [highlightedIndices, setHighlightedIndices] = useState<number[]>([]);
+  const isSorting = useRef<"idle" | "playing" | "paused">("idle");
+  const sortGeneratorRef = useRef<Generator | null>(null);
+  const animationFrameId = useRef<number | null>(null);
 
-  const SORTING_STATES = {
-    PLAYING: "playing",
-    PAUSED: "paused",
-    STOPPED: "stopped",
-  };
-
-  const sortingStateRef = useRef(SORTING_STATES.STOPPED);
-  const outerIndexRef = useRef(0);
-
-  const setSortingState = (state: string) => {
-    sortingStateRef.current = state;
-  };
-  const isPlaying = () => sortingStateRef.current === SORTING_STATES.PLAYING;
-  const isPaused = () => sortingStateRef.current === SORTING_STATES.PAUSED;
-  const isStopped = () => sortingStateRef.current === SORTING_STATES.STOPPED;
-
-  const generateData = useCallback((n: number) => {
-    // Reset sorting state
-    setSortingState(SORTING_STATES.STOPPED);
-    outerIndexRef.current = 0;
-
+  const generateData = useCallback(() => {
     setComparedIndices([]);
-    setFirstUnsortedIndex(undefined);
+    setHighlightedIndices([]);
+    isSorting.current = "idle";
+    if (animationFrameId.current) {
+      cancelAnimationFrame(animationFrameId.current);
+    }
 
-    const newData = Array.from({ length: n }, () => ({
-      id: uuidv4(), // Generate a unique ID for each object
+    const newData = Array.from({ length: numBars }, () => ({
+      id: uuidv4(),
       value: Math.floor(Math.random() * maxValue) + 1,
     }));
 
     setData(newData);
-  }, []);
+    sortGeneratorRef.current = null;
+  }, [numBars, maxValue]);
 
-  const startSort = useCallback(async () => {
-    if (isPlaying()) return; // Prevent starting if already sorting
-    setSortingState(SORTING_STATES.PLAYING);
+  type SelectionSortYield = {
+    array: { id: string; value: number }[];
+    action: "compare" | "swap" | "next" | "complete";
+    comparedIndices: number[];
+    highlightedIndices: number[];
+  };
 
-    let newData = [...data];
-    const len = newData.length;
+  function* selectionSortGenerator(
+    arr: { id: string; value: number }[]
+  ): Generator<SelectionSortYield> {
+    const array = [...arr];
+    for (let i = 0; i < array.length; i++) {
+      let currentMinIndex = i;
 
-    for (let i = outerIndexRef.current; i < len; i++) {
-      let minIndex = i;
-      setFirstUnsortedIndex(i);
-      for (let j = outerIndexRef.current + 1; j < len; j++) {
-        if (isPaused()) {
-          // Save current indices for resuming later
-          outerIndexRef.current = i;
-          return;
+      for (let j = i + 1; j < array.length; j++) {
+        yield {
+          array,
+          action: "compare",
+          comparedIndices: [currentMinIndex, j],
+          highlightedIndices: [i],
+        };
+        if (array[j].value < array[currentMinIndex].value) {
+          currentMinIndex = j;
         }
-
-        if (isStopped()) {
-          return;
-        }
-
-        setComparedIndices([j, minIndex]);
-        await new Promise((resolve) => setTimeout(resolve, 250 / speed));
-        minIndex = newData[j].value < newData[minIndex].value ? j : minIndex;
       }
-      setComparedIndices([i, minIndex]);
-      await new Promise((resolve) => setTimeout(resolve, 250 / speed));
-      [newData[i], newData[minIndex]] = [newData[minIndex], newData[i]];
-      setData([...newData]);
-      outerIndexRef.current = i;
-      await new Promise((resolve) => setTimeout(resolve, 250 / speed));
+      [array[i], array[currentMinIndex]] = [array[currentMinIndex], array[i]];
+      yield {
+        array,
+        action: "swap",
+        comparedIndices: [currentMinIndex, i],
+        highlightedIndices: [i],
+      };
+      yield {
+        array,
+        action: "next",
+        comparedIndices: [currentMinIndex, i],
+        highlightedIndices: [i],
+      };
+    }
+    return {
+      array,
+      action: "complete",
+      comparedIndices: [],
+      highlightedIndices: [],
+    };
+  }
+
+  const step = useCallback(() => {
+    if (!sortGeneratorRef.current || isSorting.current !== "playing") return;
+
+    const next =
+      sortGeneratorRef.current.next() as IteratorResult<SelectionSortYield>;
+    if (!next.done) {
+      const { array, comparedIndices, highlightedIndices } = next.value;
+      setData(array);
+      setComparedIndices(comparedIndices);
+      setHighlightedIndices(highlightedIndices);
+
+      animationFrameId.current = requestAnimationFrame(() => {
+        setTimeout(step, 250 / speed);
+      });
+    } else {
+      isSorting.current = "idle";
+      setComparedIndices([]);
+      setHighlightedIndices([]);
+    }
+  }, [speed, isSorting]);
+
+  const startSorting = useCallback(() => {
+    if (isSorting.current === "playing") return;
+
+    if (isSorting.current === "paused") {
+      isSorting.current = "playing";
+      step();
+      return;
     }
 
-    setComparedIndices([]);
-    setFirstUnsortedIndex(undefined);
-    setSortingState(SORTING_STATES.STOPPED);
+    isSorting.current = "playing";
+    sortGeneratorRef.current = selectionSortGenerator([...data]);
+    step();
+  }, [isSorting, data, step]);
 
-    // Reset indices after completing the sort
-    outerIndexRef.current = 0;
-  }, [data, sortingStateRef, speed]);
-
-  const pauseSort = useCallback(() => {
-    if (isPlaying()) setSortingState(SORTING_STATES.PAUSED);
-  }, []);
-
-  useEffect(() => {
-    generateData(numBars);
-  }, []);
+  const pauseSorting = useCallback(() => {
+    isSorting.current = "paused";
+    if (animationFrameId.current) {
+      cancelAnimationFrame(animationFrameId.current);
+    }
+  }, [isSorting]);
 
   useEffect(() => {
-    generateData(numBars);
-  }, [numBars]);
+    generateData();
+  }, []);
 
   return (
     <>
-      <h1 className="text-4xl text-center font-bold my-16">Selection Sort</h1>
+      <h1 className="text-4xl text-center font-bold mt-8">Selection Sort</h1>
       <Bars
         data={data}
         maxValue={maxValue}
         comparedIndices={comparedIndices}
         numBars={numBars}
-        highlightedIndices={[firstUnsortedIndex as number]}
+        highlightedIndices={highlightedIndices}
         speed={speed}
         generateData={generateData}
-        startSort={startSort}
-        pauseSort={pauseSort}
+        startSort={startSorting}
+        pauseSort={pauseSorting}
       />
       <div className="text-lg max-w-[70%] p-8">
         <p className="mb-4">
-          Selection Sort is a simple comparison-based sorting algorithm that
-          works by repeatedly finding the minimum element from the unsorted
-          portion of the list and swapping it with the first unsorted element.
-          This process continues until the entire list is sorted. Selection Sort
-          is intuitive and easy to understand but performs poorly on large
-          datasets due to the number of comparisons it makes, even if the list
-          is already sorted.
+          Selection Sort is an in-place comparison sorting algorithm. It works
+          by repeatedly finding the minimum element from the unsorted portion of
+          the list and swapping it with the first unsorted element. After each
+          pass, the smallest element is selected and sorted. This process
+          continues until the entire list is sorted. Like Bubble Sort, Selection
+          Sort is easy to understand and implement, but it is inefficient on
+          large lists due to its O(n²) time complexity.
         </p>
         <a
           href="https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/selection-sort.ts"
@@ -137,16 +162,20 @@ export default function SelectionSort({
         </a>
         <ul>
           <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
-            <strong>Time Complexity:</strong> Worst-case, average-case, and
-            best-case: O(n²) - occurs because the algorithm always iterates over
-            the remaining unsorted elements to find the minimum, regardless of
-            the list's initial order.
+            <strong>Time Complexity:</strong> Selection sort is O(n²) in all
+            cases (best, average, and worst). The algorithm always has to make
+            the same number of comparisons to find the minimum value in the
+            unsorted partition, regardless of the input data.
           </li>
           <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
-            <strong>Space Complexity:</strong> O(1)
+            <strong>Space Complexity:</strong> Because Selection Sort is
+            implemented iteratively and does not require any additional memory,
+            it has a O(1) space complexity.
           </li>
           <li className="py-4 border-t-2 border-b-2 grid grid-cols-[12rem_1fr]">
-            <strong>Stable:</strong> No
+            <strong>Stable:</strong> No. Selection Sort is not stable because it
+            swaps non-adjacent elements. This can result in the relative order
+            of equal elements changing.
           </li>
         </ul>
       </div>
