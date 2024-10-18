@@ -20,6 +20,4 @@ function quickSort(arr: number[]): number[] {
   return quickSort(left).concat(pivot, quickSort(right));
 }
 
-console.log(quickSort([5, 3, 7, 6, 2, 9]));
-
 export default quickSort;
