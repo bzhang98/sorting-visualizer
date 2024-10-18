@@ -142,5 +142,5 @@ const description = {
   spaceComplexity:
     "Because Bubble Sort is implemented iteratively and does not require any additional memory, it has a O(1) space complexity.",
   stability:
-    "Yes. Bubble Sort is a stable sorting algorithm. If elements A and B are considered equal, then A precedes B in the sorted list if A appears before B in the input list.",
+    "Yes. Bubble Sort is a stable sorting algorithm. Equal elements retain their relative order during the merging process.",
 };
