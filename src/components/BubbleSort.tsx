@@ -36,7 +36,7 @@ export default function BubbleSort({
 
   useEffect(() => {
     generateData();
-  }, [generateData]);
+  }, []);
 
   type BubbleSortYield = {
     array: { id: string; value: number }[];
@@ -51,7 +51,7 @@ export default function BubbleSort({
     for (let i = 0; i < array.length - 1; i++) {
       for (let j = 0; j < array.length - i - 1; j++) {
         yield {
-          array: [...array],
+          array,
           action: "compare",
           indices: [j, j + 1],
         };
@@ -59,16 +59,16 @@ export default function BubbleSort({
         if (array[j].value > array[j + 1].value) {
           [array[j], array[j + 1]] = [array[j + 1], array[j]];
           yield {
-            array: [...array],
+            array,
             action: "swap",
             indices: [j, j + 1],
           };
         }
 
         yield {
-          array: [...array],
+          array,
           action: "next",
-          indices: [],
+          indices: [j, j + 1],
         };
       }
     }
@@ -81,17 +81,13 @@ export default function BubbleSort({
     const next =
       sortGeneratorRef.current.next() as IteratorResult<BubbleSortYield>;
     if (!next.done) {
-      const { array, action, indices } = next.value;
+      const { array, indices } = next.value;
       setData(array);
       setComparedIndices(indices);
 
-      if (action !== "next") {
-        animationFrameId.current = requestAnimationFrame(() => {
-          setTimeout(step, 250 / speed);
-        });
-      } else {
-        step();
-      }
+      animationFrameId.current = requestAnimationFrame(() => {
+        setTimeout(step, 250 / speed);
+      });
     } else {
       isSorting.current = "idle";
       setComparedIndices([]);
@@ -114,7 +110,6 @@ export default function BubbleSort({
 
   const pauseSorting = useCallback(() => {
     isSorting.current = "paused";
-    setComparedIndices([]);
     if (animationFrameId.current) {
       cancelAnimationFrame(animationFrameId.current);
     }
