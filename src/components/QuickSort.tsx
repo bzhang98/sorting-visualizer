@@ -107,7 +107,7 @@ export default function QuickSort({
 
   return (
     <>
-      <h1 className="text-4xl text-center font-bold my-16">Quick Sort</h1>
+      <h1 className="text-4xl text-center font-bold mt-8">Quick Sort</h1>
       <Bars
         data={data}
         maxValue={maxValue}
