@@ -2,9 +2,13 @@ import BubbleSort from "./components/BubbleSort";
 import SelectionSort from "./components/SelectionSort";
 import InsertionSort from "./components/InsertionSort";
 import HeapSort from "./components/HeapSort";
+import MergeSort from "./components/MergeSort";
+import BubbleSortD3 from "./components/BubbleSortD3";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { useCallback, useState } from "react";
+import QuickSort from "./components/QuickSort";
+import useWindowWidth from "./hooks/use-window-width";
 
 export default function App() {
   const [speed, setSpeed] = useState(1);
@@ -12,13 +16,29 @@ export default function App() {
   const [tempSpeed, setTempSpeed] = useState(speed);
   const [tempNumBars, setTempNumBars] = useState(numBars);
 
-  const handleFinishChange = useCallback((setter: (arg0: number) => void, value: any) => {
-    setter(Number(value));
-  }, []);
+  const windowWidth = useWindowWidth();
 
-  const handleChange = useCallback((setTemp: (arg0: number) => void, value: any) => {
-    setTemp(Number(value));
-  }, []);
+  const handleFinishChange = useCallback(
+    (setter: (arg0: number) => void, value: any) => {
+      setter(Number(value));
+    },
+    []
+  );
+
+  const handleChange = useCallback(
+    (setTemp: (arg0: number) => void, value: any) => {
+      setTemp(Number(value));
+    },
+    []
+  );
+
+  if (windowWidth < 768) {
+    return (
+      <div className="p-8">
+        <h1 className="text-2xl font-semibold">Please use a larger screen</h1>
+      </div>
+    );
+  }
 
   return (
     <Router>
@@ -35,6 +55,12 @@ export default function App() {
           </Link>
           <Link className="hover:underline" to="/heap-sort">
             Heap Sort
+          </Link>
+          <Link className="hover:underline" to="/merge-sort">
+            Merge Sort
+          </Link>
+          <Link className="hover:underline" to="/quick-sort">
+            Quick Sort (In Place)
           </Link>
         </nav>
       </header>
@@ -93,6 +119,14 @@ export default function App() {
         <Route
           path="/heap-sort"
           element={<HeapSort maxValue={100} numBars={numBars} speed={speed} />}
+        />
+        <Route
+          path="/merge-sort"
+          element={<MergeSort maxValue={100} numBars={numBars} speed={speed} />}
+        />
+        <Route
+          path="/quick-sort"
+          element={<QuickSort maxValue={100} numBars={numBars} speed={speed} />}
         />
       </Routes>
     </Router>
