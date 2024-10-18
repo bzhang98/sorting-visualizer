@@ -38,7 +38,7 @@ export default function SelectionSort({
 
   useEffect(() => {
     generateData();
-  }, []);
+  }, [numBars, generateData]);
 
   type InsertionSortYield = {
     array: { id: string; value: number }[];

@@ -36,6 +36,10 @@ export default function SelectionSort({
     sortGeneratorRef.current = null;
   }, [numBars, maxValue]);
 
+  useEffect(() => {
+    generateData();
+  }, [numBars, generateData]);
+
   type SelectionSortYield = {
     array: { id: string; value: number }[];
     action: "compare" | "swap" | "next" | "complete";
@@ -124,10 +128,6 @@ export default function SelectionSort({
       cancelAnimationFrame(animationFrameId.current);
     }
   }, [isSorting]);
-
-  useEffect(() => {
-    generateData();
-  }, []);
 
   return (
     <>

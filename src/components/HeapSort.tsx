@@ -38,7 +38,7 @@ export default function InsertionSort({
 
   useEffect(() => {
     generateData();
-  }, []);
+  }, [numBars, generateData]);
 
   type HeapSortYield = {
     array: { id: string; value: number }[];

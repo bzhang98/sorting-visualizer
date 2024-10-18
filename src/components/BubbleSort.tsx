@@ -36,7 +36,7 @@ export default function BubbleSort({
 
   useEffect(() => {
     generateData();
-  }, []);
+  }, [numBars, generateData]);
 
   type BubbleSortYield = {
     array: { id: string; value: number }[];
