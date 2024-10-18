@@ -66,13 +66,16 @@ export default function MergeSort({
         const leftSubarray = newData.slice(left, left + subarraySize);
         const rightSubarray = newData.slice(right, right + subarraySize);
 
-        setLeftIndices(Array.from({ length: leftSubarray.length }, (_, i) => left + i));
-        setRightIndices(Array.from({ length: rightSubarray.length }, (_, i) => right + i));
-        
+        setLeftIndices(
+          Array.from({ length: leftSubarray.length }, (_, i) => left + i)
+        );
+        setRightIndices(
+          Array.from({ length: rightSubarray.length }, (_, i) => right + i)
+        );
+
         await new Promise((resolve) => setTimeout(resolve, 250 / speed));
         const mergedArray = merge(leftSubarray, rightSubarray);
         newData.splice(left, mergedArray.length, ...mergedArray);
-        
 
         setData([...newData]);
         await new Promise((resolve) => setTimeout(resolve, 250 / speed));
@@ -132,7 +135,7 @@ export default function MergeSort({
 
   return (
     <>
-      <h1 className="text-4xl text-center font-bold my-16">Merge Sort</h1>
+      <h1 className="text-4xl text-center font-bold mt-8">Merge Sort</h1>
       <Bars
         data={data}
         maxValue={maxValue}
