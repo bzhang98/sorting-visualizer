@@ -1,27 +1,34 @@
 import { AnimatePresence, motion } from "framer-motion";
+import { Pause, Play } from "lucide-react";
 import { useRef } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { useOptionsContext } from "../context/options-context";
 
 export default function Bars({
   data,
-  maxValue,
-  numBars,
   highlightedIndices,
-  speed,
   generateData,
   startSort,
   pauseSort,
 }: {
   data: { id: string; value: number }[];
-  maxValue: number;
-  numBars: number;
   highlightedIndices?: { indices: number[]; color?: string; label?: string }[];
-  speed: number;
-  generateData: (n: number) => void;
+  generateData: (sortOrder: string) => void;
   startSort: () => void;
   pauseSort: () => void;
 }) {
+  const {
+    numBars,
+    setNumBars,
+    sortOrder,
+    setSortOrder,
+    speed,
+    setSpeed,
+    minValue,
+    setMinValue,
+    maxValue,
+    setMaxValue,
+  } = useOptionsContext();
+
   const containerRef = useRef<null | HTMLDivElement>(null);
 
   const getFillColor = (index: number) => {
@@ -49,46 +56,41 @@ export default function Bars({
   };
 
   return (
-    <div className="flex w-[100vw] p-8">
-      <div className="controls flex flex-col justify-end gap-8 px-8">
-        <button
-          onClick={() => {
-            generateData(numBars);
+    <div
+      className="w-[100vw] h-[100vh] p-8"
+      style={{
+        width: "clamp(700px, 100%, 1000px)",
+        margin: "0 auto",
+      }}
+    >
+      <div>
+        <label htmlFor="speed" className="block mt-4">
+          Speed: {speed}x
+        </label>
+        <input
+          type="range"
+          id="speed"
+          min="0.25"
+          max="10"
+          step={0.05}
+          value={speed}
+          onChange={(e) => {
+            setSpeed(Number(e.target.value));
           }}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md"
-        >
-          Restart
-        </button>
-        <button
-          onClick={() => {
-            startSort();
-          }}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md"
-        >
-          Play
-        </button>
-        <button
-          onClick={() => {
-            pauseSort();
-          }}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md"
-        >
-          Pause
-        </button>
+          className="w-[300px]"
+        />
       </div>
       <div
-        className={`m-auto relative grow`}
+        className="relative my-16"
         ref={containerRef}
         style={{ aspectRatio: "1 / 0.4" }}
       >
         <AnimatePresence initial={false}>
           {data.map(({ id, value }, index) => {
-            const barWidth = (containerRef.current?.offsetWidth ?? 0) / numBars;
-            const heightPercentage = (value / maxValue) * 100;
-            const textYPosition =
-              heightPercentage > 5
-                ? `${100 - heightPercentage + 4}%`
-                : `${100 - heightPercentage - 2}%`;
+            const barWidth =
+              (containerRef.current?.offsetWidth ?? 0) / data.length;
+            const heightPercentage = (value / 100) * 100;
+            const textYPosition = `${100 - heightPercentage - 2}%`;
             const textColor = "black";
             const label = getLabel(index);
             const labelYPosition = `${110}%`; // Adjust this to move label further down
@@ -155,49 +157,109 @@ export default function Bars({
           })}
         </AnimatePresence>
       </div>
-      <div className="links flex flex-col justify-between gap-8 px-8">
-        <Link
-          className="bg-green-200 hover:bg-green-400 text-green-900 font-semibold py-2 px-4 rounded-md shadow-sm transition duration-200 text-center flex gap-2"
-          to="/bubble-sort"
+      <div className="controls flex gap-8 mb-8">
+        <button
+          onClick={() => {
+            startSort();
+          }}
+          className="bg-slate-700 text-white px-4 py-2 rounded-md"
         >
-          <ArrowLeft />
-          Bubble Sort
-        </Link>
-        <Link
-          className="bg-green-200 hover:bg-green-400 text-green-900 font-semibold py-2 px-4 rounded-md shadow-sm transition duration-200 text-center flex gap-2"
-          to="/selection-sort"
+          <Play />
+        </button>
+        <button
+          onClick={() => {
+            pauseSort();
+          }}
+          className="bg-slate-700 text-white px-4 py-2 rounded-md"
         >
-          <ArrowLeft />
-          Selection Sort
-        </Link>
-        <Link
-          className="bg-green-200 hover:bg-green-400 text-green-900 font-semibold py-2 px-4 rounded-md shadow-sm transition duration-200 text-center flex gap-2"
-          to="/insertion-sort"
+          <Pause />
+        </button>
+        <button
+          onClick={() => {
+            generateData(sortOrder);
+          }}
+          className="bg-slate-700 text-white px-4 py-2 rounded-md"
         >
-          <ArrowLeft />
-          Insertion Sort
-        </Link>
-        <Link
-          className="bg-green-200 hover:bg-green-400 text-green-900 font-semibold py-2 px-4 rounded-md shadow-sm transition duration-200 text-center flex gap-2"
-          to="/heap-sort"
-        >
-          <ArrowLeft />
-          Heap Sort
-        </Link>
-        <Link
-          className="bg-green-200 hover:bg-green-400 text-green-900 font-semibold py-2 px-4 rounded-md shadow-sm transition duration-200 text-center flex gap-2"
-          to="/merge-sort"
-        >
-          <ArrowLeft />
-          Merge Sort
-        </Link>
-        <Link
-          className="bg-green-200 hover:bg-green-400 text-green-900 font-semibold py-2 px-4 rounded-md shadow-sm transition duration-200 text-center flex gap-2"
-          to="/quick-sort"
-        >
-          <ArrowLeft />
-          Quick Sort
-        </Link>
+          Generate New Data
+        </button>
+      </div>
+      <div className="options">
+        <div>
+          <label htmlFor="numBars" className="block mt-4">
+            Number of Elements: {numBars}
+          </label>
+          <input
+            type="range"
+            id="numBars"
+            min={5}
+            max={50}
+            step={1}
+            value={numBars}
+            onChange={(e) => {
+              setNumBars(Number(e.target.value));
+            }}
+            className="w-[300px]"
+          />
+        </div>
+        <div>
+          <label htmlFor="numBars" className="block mt-4">
+            Maximum Value: {maxValue}
+          </label>
+          <input
+            type="range"
+            id="numBars"
+            min={minValue}
+            max={100}
+            step={1}
+            value={maxValue}
+            onChange={(e) => {
+              setMaxValue(Number(e.target.value));
+            }}
+            className="w-[300px]"
+          />
+        </div>
+        <div>
+          <label htmlFor="numBars" className="block mt-4">
+            Minimum Value: {minValue}
+          </label>
+          <input
+            type="range"
+            id="numBars"
+            min={1}
+            max={100}
+            step={1}
+            value={minValue}
+            onChange={(e) => {
+              setMinValue(Number(e.target.value));
+              setMaxValue(Math.max(Number(e.target.value), maxValue));
+            }}
+            className="w-[300px]"
+          />
+        </div>
+        <div>
+          <label htmlFor="sortOrder" className="block mt-4">
+            Sort Order
+          </label>
+          <select
+            name="sortOrder"
+            id="sortOrder"
+            value={sortOrder}
+            onChange={(e) => {
+              setSortOrder(e.target.value);
+            }}
+            className="border border-slate-500 p-2 rounded-md"
+          >
+            <option value="random">Random</option>
+            <option value="almostSortedAscending">
+              Almost Sorted (Ascending)
+            </option>
+            <option value="almostSortedDescending">
+              Almost Sorted (Descending)
+            </option>
+            <option value="sortedAscending">Sorted (Ascending)</option>
+            <option value="sortedDescending">Sorted (Descending)</option>
+          </select>
+        </div>
       </div>
     </div>
   );
