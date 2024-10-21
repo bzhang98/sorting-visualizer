@@ -13,97 +13,128 @@ export default function QuickSort({
   speed: number;
 }) {
   const [data, setData] = useState<{ id: string; value: number }[]>([]);
-
   const [comparedIndices, setComparedIndices] = useState<number[]>([]);
+  const [highlightedIndices, setHighlightedIndices] = useState<number[]>([]);
+  const isSorting = useRef<"idle" | "playing" | "paused">("idle");
+  const sortGeneratorRef = useRef<Generator | null>(null);
+  const animationFrameId = useRef<number | null>(null);
 
-  const SORTING_STATES = {
-    PLAYING: "playing",
-    PAUSED: "paused",
-    STOPPED: "stopped",
-  };
-
-  const sortingStateRef = useRef(SORTING_STATES.STOPPED);
-
-  const setSortingState = (state: string) => {
-    sortingStateRef.current = state;
-  };
-  const isPlaying = () => sortingStateRef.current === SORTING_STATES.PLAYING;
-  const isStopped = () => sortingStateRef.current === SORTING_STATES.STOPPED;
-
-  const generateData = useCallback((n: number) => {
-    // Reset sorting state
-    setSortingState(SORTING_STATES.STOPPED);
+  const generateData = useCallback(() => {
     setComparedIndices([]);
+    setHighlightedIndices([]);
+    isSorting.current = "idle";
+    if (animationFrameId.current) {
+      cancelAnimationFrame(animationFrameId.current);
+    }
 
-    const newData = Array.from({ length: n }, () => ({
-      id: uuidv4(), // Generate a unique ID for each object
+    const newData = Array.from({ length: numBars }, () => ({
+      id: uuidv4(),
       value: Math.floor(Math.random() * maxValue) + 1,
     }));
 
     setData(newData);
-  }, []);
+    sortGeneratorRef.current = null;
+  }, [numBars, maxValue]);
 
-  const startSort = useCallback(async () => {
-    if (isPlaying()) return; // Prevent starting if already sorting
-    setSortingState(SORTING_STATES.PLAYING);
+  useEffect(() => {
+    generateData();
+  }, [numBars, generateData]);
 
-    let newData = [...data];
+  type QuickSortYield = {
+    arr: { id: string; value: number }[];
+    action: "compare" | "swap" | "next" | "complete";
+    comparedIndices: number[];
+    highlightedIndices: number[];
+  };
 
-    await quickSortInPlace(newData);
-
-    async function quickSortInPlace(
-      arr: { id: string; value: number }[],
-      left = 0,
-      right = arr.length - 1
-    ) {
-      if (left >= right) return;
-
-      const pivot = arr[right].value;
-      let j = left - 1;
-
-      for (let i = left; i <= right; i++) {
-        if (isStopped()) {
-          return;
-        }
-        setComparedIndices([i, right]);
-        await new Promise((resolve) => setTimeout(resolve, 250 / speed));
-        if (arr[i].value > pivot) continue;
-
-        j++;
-        if (i > j) {
-          setComparedIndices([i, j]);
-          await new Promise((resolve) => setTimeout(resolve, 250 / speed));
-          [arr[i], arr[j]] = [arr[j], arr[i]];
-          setData([...arr]);
-          await new Promise((resolve) => setTimeout(resolve, 250 / speed));
-        }
+  function* quickSortGenerator(
+    arr: { id: string; value: number }[],
+    start = 0,
+    end = arr.length - 1
+  ): Generator<QuickSortYield> {
+    if (start >= end) {
+      return;
+    }
+    const pivotValue = arr[end].value;
+    let j = start - 1;
+    for (let i = start; i <= end; i++) {
+      yield {
+        arr,
+        action: "compare",
+        comparedIndices: [i, j],
+        highlightedIndices: [end],
+      };
+      if (arr[i].value > pivotValue) {
+        continue;
       }
+      j++;
+      yield {
+        arr,
+        action: "compare",
+        comparedIndices: [i, j],
+        highlightedIndices: [end],
+      };
+      if (i > j) {
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+        yield {
+          arr,
+          action: "swap",
+          comparedIndices: [i, j],
+          highlightedIndices: [end],
+        };
+        yield {
+          arr,
+          action: "swap",
+          comparedIndices: [i, j],
+          highlightedIndices: [end],
+        };
+      }
+    }
+    yield* quickSortGenerator(arr, start, j - 1);
+    yield* quickSortGenerator(arr, j + 1, end);
+  }
 
-      await quickSortInPlace(arr, left, j - 1);
-      await quickSortInPlace(arr, j + 1, right);
+  const step = useCallback(() => {
+    if (!sortGeneratorRef.current || isSorting.current !== "playing") return;
+
+    const next =
+      sortGeneratorRef.current.next() as IteratorResult<QuickSortYield>;
+    if (!next.done) {
+      const { arr, comparedIndices, highlightedIndices } = next.value;
+      setData(arr);
+      setComparedIndices(comparedIndices);
+      setHighlightedIndices(highlightedIndices);
+
+      animationFrameId.current = requestAnimationFrame(() => {
+        setTimeout(step, 250 / speed);
+      });
+    } else {
+      isSorting.current = "idle";
+      setComparedIndices([]);
+      setHighlightedIndices([]);
+    }
+  }, [speed, isSorting]);
+
+  const startSorting = useCallback(() => {
+    if (isSorting.current === "playing") return;
+
+    if (isSorting.current === "paused") {
+      isSorting.current = "playing";
+      step();
+      return;
     }
 
-    setComparedIndices([]);
-    setSortingState(SORTING_STATES.STOPPED);
+    isSorting.current = "playing";
+    sortGeneratorRef.current = quickSortGenerator([...data]);
+    step();
+  }, [isSorting, data, step]);
 
-    // Reset indices after completing the sort
-    console.log("got here");
-  }, [data, sortingStateRef, speed]);
-
-  const pauseSort = useCallback(() => {
-    if (!isPlaying()) return;
-    alert(
-      "Sorry, you can't pause Quick Sort (yet). Please stop the sort instead."
-    );
-  }, []);
-
-  useEffect(() => {
-    generateData(numBars);
-  }, []);
-
-  useEffect(() => {
-    generateData(numBars);
-  }, [numBars]);
+  const pauseSorting = useCallback(() => {
+    isSorting.current = "paused";
+    if (animationFrameId.current) {
+      cancelAnimationFrame(animationFrameId.current);
+    }
+  }, [isSorting]);
 
   return (
     <>
@@ -113,10 +144,11 @@ export default function QuickSort({
         maxValue={maxValue}
         comparedIndices={comparedIndices}
         numBars={numBars}
+        highlightedIndices={highlightedIndices}
         speed={speed}
         generateData={generateData}
-        startSort={startSort}
-        pauseSort={pauseSort}
+        startSort={startSorting}
+        pauseSort={pauseSorting}
       />
       <Description description={description} />
     </>
