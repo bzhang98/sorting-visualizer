@@ -1,44 +1,33 @@
 import Bars from "./Bars";
 import { useState, useCallback, useEffect, useRef } from "react";
-import { v4 as uuidv4 } from "uuid";
 import Description from "./Description";
+import useGenerateData from "../hooks/use-generate-data";
+import { useOptionsContext } from "../context/options-context";
 
-export default function InsertionSort({
-  numBars,
-  maxValue,
-  speed,
-}: {
-  numBars: number;
-  maxValue: number;
-  speed: number;
-}) {
-  const [data, setData] = useState<{ id: string; value: number }[]>([]);
+export default function InsertionSort() {
+  const { numBars, maxValue, minValue, speed, sortOrder } = useOptionsContext();
+
   const [comparedIndices, setComparedIndices] = useState<number[]>([]);
   const [sortedPartition, setSortedPartition] = useState<number[]>([]);
   const isSorting = useRef<"idle" | "playing" | "paused">("idle");
-  const sortGeneratorRef = useRef<Generator | null>(null);
-  const animationFrameId = useRef<number | null>(null);
 
-  const generateData = useCallback(() => {
+  const resetPointers = useCallback(() => {
     setComparedIndices([]);
     setSortedPartition([]);
-    isSorting.current = "idle";
-    if (animationFrameId.current) {
-      cancelAnimationFrame(animationFrameId.current);
-    }
+  }, []);
 
-    const newData = Array.from({ length: numBars }, () => ({
-      id: uuidv4(),
-      value: Math.floor(Math.random() * maxValue) + 1,
-    }));
-
-    setData(newData);
-    sortGeneratorRef.current = null;
-  }, [numBars, maxValue]);
+  const { data, setData, sortGeneratorRef, animationFrameId, generateData } =
+    useGenerateData({
+      numBars,
+      minValue,
+      maxValue,
+      isSorting,
+      resetData: resetPointers,
+    });
 
   useEffect(() => {
-    generateData();
-  }, [numBars, generateData]);
+    generateData(sortOrder);
+  }, []);
 
   type HeapSortYield = {
     array: { id: string; value: number }[];
@@ -188,8 +177,7 @@ export default function InsertionSort({
       });
     } else {
       isSorting.current = "idle";
-      setComparedIndices([]);
-      setSortedPartition([]);
+      resetPointers();
     }
   }, [speed, isSorting]);
 
@@ -219,13 +207,10 @@ export default function InsertionSort({
       <h1 className="text-4xl text-center font-bold mt-8">Heap Sort</h1>
       <Bars
         data={data}
-        maxValue={maxValue}
-        numBars={numBars}
         highlightedIndices={[
           { color: "lightcoral", indices: comparedIndices },
           { color: "limegreen", indices: sortedPartition },
         ]}
-        speed={speed}
         generateData={generateData}
         startSort={startSorting}
         pauseSort={pauseSorting}

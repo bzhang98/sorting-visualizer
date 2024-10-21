@@ -1,44 +1,32 @@
 import Bars from "./Bars";
 import { useState, useCallback, useEffect, useRef } from "react";
-import { v4 as uuidv4 } from "uuid";
 import Description from "./Description";
+import useGenerateData from "../hooks/use-generate-data";
+import { useOptionsContext } from "../context/options-context";
 
-export default function SelectionSort({
-  numBars,
-  maxValue,
-  speed,
-}: {
-  numBars: number;
-  maxValue: number;
-  speed: number;
-}) {
-  const [data, setData] = useState<{ id: string; value: number }[]>([]);
+export default function SelectionSort() {
+  const { numBars, maxValue, minValue, speed, sortOrder } = useOptionsContext();
   const [highlightedIndices, setHighlightedIndices] = useState<null | number[]>(
     null
   );
   const isSorting = useRef<"idle" | "playing" | "paused">("idle");
-  const sortGeneratorRef = useRef<Generator | null>(null);
-  const animationFrameId = useRef<number | null>(null);
 
-  const generateData = useCallback(() => {
+  const resetPointers = useCallback(() => {
     setHighlightedIndices([]);
-    isSorting.current = "idle";
-    if (animationFrameId.current) {
-      cancelAnimationFrame(animationFrameId.current);
-    }
+  }, []);
 
-    const newData = Array.from({ length: numBars }, () => ({
-      id: uuidv4(),
-      value: Math.floor(Math.random() * maxValue) + 1,
-    }));
-
-    setData(newData);
-    sortGeneratorRef.current = null;
-  }, [numBars, maxValue]);
+  const { data, setData, sortGeneratorRef, animationFrameId, generateData } =
+    useGenerateData({
+      numBars,
+      minValue,
+      maxValue,
+      isSorting,
+      resetData: resetPointers,
+    });
 
   useEffect(() => {
-    generateData();
-  }, [numBars, generateData]);
+    generateData(sortOrder);
+  }, []);
 
   type InsertionSortYield = {
     array: { id: string; value: number }[];
@@ -96,7 +84,7 @@ export default function SelectionSort({
       });
     } else {
       isSorting.current = "idle";
-      setHighlightedIndices([]);
+      resetPointers();
     }
   }, [speed, isSorting]);
 
@@ -126,8 +114,6 @@ export default function SelectionSort({
       <h1 className="text-4xl text-center font-bold mt-8">Insertion Sort</h1>
       <Bars
         data={data}
-        maxValue={maxValue}
-        numBars={numBars}
         highlightedIndices={[
           {
             indices: highlightedIndices ? [highlightedIndices[0]] : [],
@@ -138,7 +124,6 @@ export default function SelectionSort({
             color: "lightcoral",
           },
         ]}
-        speed={speed}
         generateData={generateData}
         startSort={startSorting}
         pauseSort={pauseSorting}

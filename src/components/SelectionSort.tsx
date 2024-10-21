@@ -1,18 +1,12 @@
 import Bars from "./Bars";
 import { useState, useCallback, useEffect, useRef } from "react";
-import { v4 as uuidv4 } from "uuid";
 import Description from "./Description";
+import { useOptionsContext } from "../context/options-context";
+import useGenerateData from "../hooks/use-generate-data";
 
-export default function SelectionSort({
-  numBars,
-  maxValue,
-  speed,
-}: {
-  numBars: number;
-  maxValue: number;
-  speed: number;
-}) {
-  const [data, setData] = useState<{ id: string; value: number }[]>([]);
+export default function SelectionSort() {
+  const { numBars, maxValue, minValue, speed, sortOrder } = useOptionsContext();
+  const isSorting = useRef<"idle" | "playing" | "paused">("idle");
 
   const [currentMinIndex, setCurrentMinIndex] = useState<number | null>(null);
   const [currentInspectedIndex, setCurrentInspectedIndex] = useState<
@@ -22,31 +16,29 @@ export default function SelectionSort({
     null
   );
 
-  const isSorting = useRef<"idle" | "playing" | "paused">("idle");
-  const sortGeneratorRef = useRef<Generator | null>(null);
-  const animationFrameId = useRef<number | null>(null);
-
-  const generateData = useCallback(() => {
+  const resetPointers = useCallback(() => {
     setCurrentInspectedIndex(null);
     setCurrentMinIndex(null);
     setLastUnsortedIndex(null);
-    isSorting.current = "idle";
-    if (animationFrameId.current) {
-      cancelAnimationFrame(animationFrameId.current);
-    }
+  }, []);
 
-    const newData = Array.from({ length: numBars }, () => ({
-      id: uuidv4(),
-      value: Math.floor(Math.random() * maxValue) + 1,
-    }));
-
-    setData(newData);
-    sortGeneratorRef.current = null;
-  }, [numBars, maxValue]);
+  const {
+    data,
+    setData,
+    sortGeneratorRef,
+    animationFrameId,
+    generateData,
+  } = useGenerateData({
+    numBars,
+    minValue,
+    maxValue,
+    isSorting,
+    resetData: resetPointers,
+  });
 
   useEffect(() => {
-    generateData();
-  }, [numBars, generateData]);
+    generateData(sortOrder);
+  }, []);
 
   type SelectionSortYield = {
     array: { id: string; value: number }[];
@@ -119,9 +111,7 @@ export default function SelectionSort({
       });
     } else {
       isSorting.current = "idle";
-      setCurrentInspectedIndex(null);
-      setCurrentMinIndex(null);
-      setLastUnsortedIndex(null);
+      resetPointers();
     }
   }, [speed, isSorting]);
 
@@ -130,6 +120,9 @@ export default function SelectionSort({
 
     if (isSorting.current === "paused") {
       isSorting.current = "playing";
+      if (!sortGeneratorRef.current) {
+        sortGeneratorRef.current = selectionSortGenerator([...data]);
+      }
       step();
       return;
     }
@@ -151,8 +144,6 @@ export default function SelectionSort({
       <h1 className="text-4xl text-center font-bold mt-8">Selection Sort</h1>
       <Bars
         data={data}
-        maxValue={maxValue}
-        numBars={numBars}
         highlightedIndices={[
           ...(currentMinIndex === lastUnsortedIndex
             ? [
@@ -179,7 +170,6 @@ export default function SelectionSort({
             color: "lightcoral",
           },
         ]}
-        speed={speed}
         generateData={generateData}
         startSort={startSorting}
         pauseSort={pauseSorting}

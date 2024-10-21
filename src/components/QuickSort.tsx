@@ -1,19 +1,11 @@
 import Bars from "./Bars";
 import { useState, useCallback, useEffect, useRef } from "react";
-import { v4 as uuidv4 } from "uuid";
 import Description from "./Description";
+import { useOptionsContext } from "../context/options-context";
+import useGenerateData from "../hooks/use-generate-data";
 
-export default function QuickSort({
-  numBars,
-  maxValue,
-  speed,
-}: {
-  numBars: number;
-  maxValue: number;
-  speed: number;
-}) {
-  const [data, setData] = useState<{ id: string; value: number }[]>([]);
-
+export default function QuickSort() {
+  const { numBars, maxValue, minValue, speed, sortOrder } = useOptionsContext();
   const [pointers, setPointers] = useState<{ index: number; label?: string }[]>(
     []
   );
@@ -21,31 +13,25 @@ export default function QuickSort({
   const [pivotIndex, setPivotIndex] = useState<number | null>(null);
 
   const isSorting = useRef<"idle" | "playing" | "paused">("idle");
-  const sortGeneratorRef = useRef<Generator | null>(null);
-  const animationFrameId = useRef<number | null>(null);
 
-  const generateData = useCallback(() => {
+  const resetPointers = useCallback(() => {
     setPointers([]);
     setStartIndex(null);
     setPivotIndex(null);
+  }, []);
 
-    isSorting.current = "idle";
-    if (animationFrameId.current) {
-      cancelAnimationFrame(animationFrameId.current);
-    }
-
-    const newData = Array.from({ length: numBars }, () => ({
-      id: uuidv4(),
-      value: Math.floor(Math.random() * maxValue) + 1,
-    }));
-
-    setData(newData);
-    sortGeneratorRef.current = null;
-  }, [numBars, maxValue]);
+  const { data, setData, sortGeneratorRef, animationFrameId, generateData } =
+    useGenerateData({
+      numBars,
+      minValue,
+      maxValue,
+      isSorting,
+      resetData: resetPointers,
+    });
 
   useEffect(() => {
-    generateData();
-  }, [numBars, generateData]);
+    generateData(sortOrder);
+  }, []);
 
   type QuickSortYield = {
     arr: { id: string; value: number }[];
@@ -184,8 +170,6 @@ export default function QuickSort({
       <h1 className="text-4xl text-center font-bold mt-8">Quick Sort</h1>
       <Bars
         data={data}
-        maxValue={maxValue}
-        numBars={numBars}
         highlightedIndices={[
           { indices: [pivotIndex as number], color: "green", label: "Pivot" },
           ...pointers.map(({ index, label }) => ({
@@ -195,7 +179,6 @@ export default function QuickSort({
           })),
           { indices: [startIndex as number], color: "blue", label: "Start" },
         ]}
-        speed={speed}
         generateData={generateData}
         startSort={startSorting}
         pauseSort={pauseSorting}

@@ -1,46 +1,33 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import Bars from "./Bars";
-import { v4 as uuidv4 } from "uuid";
 import Description from "./Description";
+import { useOptionsContext } from "../context/options-context";
+import useGenerateData from "../hooks/use-generate-data";
 
-export default function BubbleSort({
-  numBars,
-  maxValue,
-  speed,
-}: {
-  numBars: number;
-  maxValue: number;
-  speed: number;
-}) {
-  const [data, setData] = useState<{ id: string; value: number }[]>([]);
+export default function BubbleSort() {
+  const { numBars, minValue, maxValue, speed, sortOrder } = useOptionsContext();
   const [comparedIndices, setComparedIndices] = useState<number[]>([]);
   const isSorting = useRef<"idle" | "playing" | "paused">("idle");
-  const sortGeneratorRef = useRef<Generator | null>(null);
-  const animationFrameId = useRef<number | null>(null);
 
-  const generateData = useCallback(() => {
+  const resetPointers = useCallback(() => {
     setComparedIndices([]);
-    isSorting.current = "idle";
-    if (animationFrameId.current) {
-      cancelAnimationFrame(animationFrameId.current);
-    }
+  }, []);
 
-    const newData = Array.from({ length: numBars }, () => ({
-      id: uuidv4(),
-      value: Math.floor(Math.random() * maxValue) + 1,
-    }));
-
-    setData(newData);
-    sortGeneratorRef.current = null;
-  }, [numBars, maxValue]);
+  const { data, setData, sortGeneratorRef, animationFrameId, generateData } =
+    useGenerateData({
+      numBars,
+      minValue,
+      maxValue,
+      isSorting,
+      resetData: resetPointers,
+    });
 
   useEffect(() => {
-    generateData();
-  }, [numBars, generateData]);
+    generateData(sortOrder);
+  }, []);
 
   type BubbleSortYield = {
     array: { id: string; value: number }[];
-    action: "compare" | "swap" | "next" | "complete";
     indices: number[];
   };
 
@@ -51,7 +38,6 @@ export default function BubbleSort({
       for (let j = 0; j < array.length - i - 1; j++) {
         yield {
           array,
-          action: "compare",
           indices: [j, j + 1],
         };
 
@@ -59,19 +45,16 @@ export default function BubbleSort({
           [array[j], array[j + 1]] = [array[j + 1], array[j]];
           yield {
             array,
-            action: "swap",
             indices: [j, j + 1],
           };
         }
 
         yield {
           array,
-          action: "next",
           indices: [j, j + 1],
         };
       }
     }
-    return { array, action: "complete", indices: [] };
   }
 
   const step = useCallback(() => {
@@ -89,7 +72,7 @@ export default function BubbleSort({
       });
     } else {
       isSorting.current = "idle";
-      setComparedIndices([]);
+      resetPointers();
     }
   }, [speed, isSorting]);
 
@@ -119,10 +102,7 @@ export default function BubbleSort({
       <h1 className="text-4xl text-center font-bold mt-8">Bubble Sort</h1>
       <Bars
         data={data}
-        maxValue={maxValue}
         highlightedIndices={[{ indices: comparedIndices, color: "lightcoral" }]}
-        numBars={numBars}
-        speed={speed}
         generateData={generateData}
         startSort={startSorting}
         pauseSort={pauseSorting}

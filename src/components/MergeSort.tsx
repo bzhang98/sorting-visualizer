@@ -1,88 +1,47 @@
 import Bars from "./Bars";
 import { useState, useCallback, useEffect, useRef } from "react";
-import { v4 as uuidv4 } from "uuid";
 import Description from "./Description";
+import { useOptionsContext } from "../context/options-context";
+import useGenerateData from "../hooks/use-generate-data";
 
-export default function MergeSort({
-  numBars,
-  maxValue,
-  speed,
-}: {
-  numBars: number;
-  maxValue: number;
-  speed: number;
-}) {
-  const [data, setData] = useState<{ id: string; value: number }[]>([]);
+export default function MergeSort() {
+  const { numBars, maxValue, minValue, speed, sortOrder } = useOptionsContext();
 
   const [leftIndices, setLeftIndices] = useState<number[]>([]);
   const [rightIndices, setRightIndices] = useState<number[]>([]);
-
-  const SORTING_STATES = {
-    PLAYING: "playing",
-    PAUSED: "paused",
-    STOPPED: "stopped",
-  };
-
-  const sortingStateRef = useRef(SORTING_STATES.STOPPED);
   const outerIndexRef = useRef(0);
   const innerIndexRef = useRef<null | number>(null);
+  const isSorting = useRef<"idle" | "playing" | "paused">("idle");
 
-  const setSortingState = (state: string) => {
-    sortingStateRef.current = state;
-  };
-  const isPlaying = () => sortingStateRef.current === SORTING_STATES.PLAYING;
-
-  const generateData = useCallback((n: number) => {
-    // Reset sorting state
-    setSortingState(SORTING_STATES.STOPPED);
-    outerIndexRef.current = 0;
-    innerIndexRef.current = null;
+  const resetPointers = useCallback(() => {
     setLeftIndices([]);
     setRightIndices([]);
-
-    const newData = Array.from({ length: n }, () => ({
-      id: uuidv4(), // Generate a unique ID for each object
-      value: Math.floor(Math.random() * maxValue) + 1,
-    }));
-
-    setData(newData);
+    outerIndexRef.current = 0;
+    innerIndexRef.current = null;
   }, []);
 
-  const startSort = useCallback(async () => {
-    if (isPlaying()) return; // Prevent starting if already sorting
-    setSortingState(SORTING_STATES.PLAYING);
+  const { data, setData, sortGeneratorRef, animationFrameId, generateData } =
+    useGenerateData({
+      numBars,
+      minValue,
+      maxValue,
+      isSorting,
+      resetData: resetPointers,
+    });
 
-    let newData = [...data];
-    let subarraySize = 1;
-    while (subarraySize <= data.length * 2) {
-      let left = 0;
-      let right = left + subarraySize;
+  useEffect(() => {
+    generateData(sortOrder);
+  }, []);
 
-      while (left < data.length) {
-        const leftSubarray = newData.slice(left, left + subarraySize);
-        const rightSubarray = newData.slice(right, right + subarraySize);
+  type MergeSortYield = {
+    array: { id: string; value: number }[];
+    leftIndices: number[];
+    rightIndices: number[];
+  };
 
-        setLeftIndices(
-          Array.from({ length: leftSubarray.length }, (_, i) => left + i)
-        );
-        setRightIndices(
-          Array.from({ length: rightSubarray.length }, (_, i) => right + i)
-        );
-
-        await new Promise((resolve) => setTimeout(resolve, 500 / speed));
-        const mergedArray = merge(leftSubarray, rightSubarray);
-        newData.splice(left, mergedArray.length, ...mergedArray);
-
-        setData([...newData]);
-        await new Promise((resolve) => setTimeout(resolve, 500 / speed));
-
-        left += subarraySize * 2;
-        right += subarraySize * 2;
-        await new Promise((resolve) => setTimeout(resolve, 500 / speed));
-      }
-      subarraySize *= 2;
-    }
-
+  function* mergeSortGenerator(
+    array: { id: string; value: number }[]
+  ): Generator<MergeSortYield> {
     function merge(
       left: { value: number; id: string }[],
       right: { value: number; id: string }[]
@@ -107,34 +66,92 @@ export default function MergeSort({
       return mergedArray;
     }
 
-    setLeftIndices([]);
-    setRightIndices([]);
-    setSortingState(SORTING_STATES.STOPPED);
+    let subarraySize = 1;
+    while (subarraySize <= data.length * 2) {
+      let left = 0;
+      let right = left + subarraySize;
 
-    // Reset indices after completing the sort
-    outerIndexRef.current = 0;
-    innerIndexRef.current = null;
-  }, [data, sortingStateRef, speed]);
+      while (left < data.length) {
+        const leftSubarray = array.slice(left, left + subarraySize);
+        const rightSubarray = array.slice(right, right + subarraySize);
+        yield {
+          array,
+          leftIndices: Array.from(
+            { length: leftSubarray.length },
+            (_, i) => left + i
+          ),
+          rightIndices: Array.from(
+            { length: rightSubarray.length },
+            (_, i) => right + i
+          ),
+        };
 
-  const pauseSort = useCallback(() => {
-    if (isPlaying()) setSortingState(SORTING_STATES.PAUSED);
-  }, []);
+        const mergedArray = merge(leftSubarray, rightSubarray);
+        array.splice(left, mergedArray.length, ...mergedArray);
+        yield {
+          array,
+          leftIndices: Array.from(
+            { length: leftSubarray.length },
+            (_, i) => left + i
+          ),
+          rightIndices: Array.from(
+            { length: rightSubarray.length },
+            (_, i) => right + i
+          ),
+        };
+        left += subarraySize * 2;
+        right += subarraySize * 2;
+      }
+      subarraySize *= 2;
+    }
+  }
 
-  useEffect(() => {
-    generateData(numBars);
-  }, []);
+  const step = useCallback(() => {
+    if (!sortGeneratorRef.current || isSorting.current !== "playing") return;
 
-  useEffect(() => {
-    generateData(numBars);
-  }, [numBars]);
+    const next =
+      sortGeneratorRef.current.next() as IteratorResult<MergeSortYield>;
+    if (!next.done) {
+      const { array, leftIndices, rightIndices } = next.value;
+      setData(array);
+      setLeftIndices(leftIndices);
+      setRightIndices(rightIndices);
+
+      animationFrameId.current = requestAnimationFrame(() => {
+        setTimeout(step, 750 / speed);
+      });
+    } else {
+      isSorting.current = "idle";
+      resetPointers();
+    }
+  }, [speed, isSorting]);
+
+  const startSorting = useCallback(() => {
+    if (isSorting.current === "playing") return;
+
+    if (isSorting.current === "paused") {
+      isSorting.current = "playing";
+      step();
+      return;
+    }
+
+    isSorting.current = "playing";
+    sortGeneratorRef.current = mergeSortGenerator([...data]);
+    step();
+  }, [isSorting, data, step]);
+
+  const pauseSorting = useCallback(() => {
+    isSorting.current = "paused";
+    if (animationFrameId.current) {
+      cancelAnimationFrame(animationFrameId.current);
+    }
+  }, [isSorting]);
 
   return (
     <>
       <h1 className="text-4xl text-center font-bold mt-8">Merge Sort</h1>
       <Bars
         data={data}
-        maxValue={maxValue}
-        numBars={numBars}
         highlightedIndices={[
           { color: "lightcoral", indices: leftIndices },
           {
@@ -142,10 +159,9 @@ export default function MergeSort({
             indices: rightIndices,
           },
         ]}
-        speed={speed}
         generateData={generateData}
-        startSort={startSort}
-        pauseSort={pauseSort}
+        startSort={startSorting}
+        pauseSort={pauseSorting}
       />
       <Description description={description} />
     </>
