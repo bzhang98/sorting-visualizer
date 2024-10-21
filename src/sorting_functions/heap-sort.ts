@@ -29,15 +29,14 @@ function heapifyArray(arr: number[]) {
 }
 
 function heapSort(arr: number[]): number[] {
-  const arrCopy = [...arr];
-  heapifyArray(arrCopy);
+  heapifyArray(arr);
 
   for (let i = arr.length - 1; i >= 0; i--) {
-    [arrCopy[0], arrCopy[i]] = [arrCopy[i], arrCopy[0]];
-    percolate(arrCopy, 0, i);
+    [arr[0], arr[i]] = [arr[i], arr[0]];
+    percolate(arr, 0, i);
   }
 
-  return arrCopy;
+  return arr;
 }
 
 export default heapSort;

@@ -1,15 +1,14 @@
 function selectionSort(arr: number[]): number[] {
-  const arrCopy = [...arr];
-  for (let i = 0; i < arrCopy.length; i++) {
+  for (let i = 0; i < arr.length; i++) {
     let minIndex = i;
 
-    for (let j = i + 1; j < arrCopy.length; j++) {
-      minIndex = arrCopy[j] < arrCopy[minIndex] ? j : minIndex;
+    for (let j = i + 1; j < arr.length; j++) {
+      minIndex = arr[j] < arr[minIndex] ? j : minIndex;
     }
 
-    [arrCopy[i], arrCopy[minIndex]] = [arrCopy[minIndex], arrCopy[i]];
+    [arr[i], arr[minIndex]] = [arr[minIndex], arr[i]];
   }
-  return arrCopy;
+  return arr;
 }
 
 export default selectionSort;

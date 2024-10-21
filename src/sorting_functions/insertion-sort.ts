@@ -1,14 +1,13 @@
 function insertionSort(arr: number[]): number[] {
-  const arrCopy = [...arr];
-  for (let i = 1; i < arrCopy.length; i++) {
+  for (let i = 1; i < arr.length; i++) {
     let j = i;
-    while (j > 0 && arrCopy[j - 1] > arrCopy[j]) {
-      [arrCopy[j - 1], arrCopy[j]] = [arrCopy[j], arrCopy[j - 1]];
+    while (j > 0 && arr[j - 1] > arr[j]) {
+      [arr[j - 1], arr[j]] = [arr[j], arr[j - 1]];
       j--;
     }
   }
 
-  return arrCopy;
+  return arr;
 }
 
 export default insertionSort;
