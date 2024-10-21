@@ -1,23 +1,27 @@
-function quickSort(arr: number[]): number[] {
-  if (arr.length <= 1) {
+function quickSort(
+  arr: number[],
+  start = 0,
+  end = arr.length - 1
+): number[] {
+  if (start >= end) {
     return arr;
   }
 
-  const midIndex = Math.floor(arr.length / 2);
-  const pivot = arr[midIndex];
-  const left = [];
-  const right = [];
-
-  for (let i = 0; i < arr.length; i++) {
-    if (i === midIndex) continue; // Skip the pivot itself
-    if (arr[i] < pivot) {
-      left.push(arr[i]);
-    } else {
-      right.push(arr[i]);
+  const pivotValue = arr[end];
+  let j = start - 1;
+  for (let i = start; i <= end; i++) {
+    if (arr[i] > pivotValue) {
+      continue;
+    }
+    j++;
+    if (i > j) {
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
   }
+  quickSort(arr, start, j - 1);
+  quickSort(arr, j + 1, end);
 
-  return quickSort(left).concat(pivot, quickSort(right));
+  return arr;
 }
 
 export default quickSort;
