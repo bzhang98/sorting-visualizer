@@ -152,7 +152,7 @@ const description = {
     "Merge Sort is a divide-and-conquer comparison sorting algorithm. It works by recursively splitting the input list into smaller sublists until each sublist contains a single element. It then merges these sublists in a sorted manner to produce a final sorted list. Merge Sort is well-suited for large datasets due to its predictable time complexity.",
   link: "https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/merge-sort.ts",
   timeComplexity:
-    "Merge Sort has a time complexity of O(n log n) in all cases (best, average, and worst). This is due to the process of splitting the list (log n) and merging the sublists (n).",
+    "Merge Sort has a time complexity of O(n log n) in all cases (best, average, and worst). The list is split in half until each sublist contains a single element, which takes O(log n) time. Each time, the lists must be merged together, which is an O(n) operation, resulting in a time complexity of O(n log n).",
   spaceComplexity:
     "Merge Sort has a space complexity of O(n) because it requires additional memory for the temporary arrays used during the merging process.",
   stability:
