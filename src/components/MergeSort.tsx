@@ -69,17 +69,17 @@ export default function MergeSort({
           Array.from({ length: rightSubarray.length }, (_, i) => right + i)
         );
 
-        await new Promise((resolve) => setTimeout(resolve, 250 / speed));
+        await new Promise((resolve) => setTimeout(resolve, 500 / speed));
         const mergedArray = merge(leftSubarray, rightSubarray);
         newData.splice(left, mergedArray.length, ...mergedArray);
 
         setData([...newData]);
-        await new Promise((resolve) => setTimeout(resolve, 250 / speed));
+        await new Promise((resolve) => setTimeout(resolve, 500 / speed));
 
         left += subarraySize * 2;
         right += subarraySize * 2;
-        await new Promise((resolve) => setTimeout(resolve, 250 / speed));
-      } 
+        await new Promise((resolve) => setTimeout(resolve, 500 / speed));
+      }
       subarraySize *= 2;
     }
 
@@ -134,9 +134,14 @@ export default function MergeSort({
       <Bars
         data={data}
         maxValue={maxValue}
-        comparedIndices={leftIndices}
         numBars={numBars}
-        highlightedIndices={rightIndices}
+        highlightedIndices={[
+          { color: "lightcoral", indices: leftIndices },
+          {
+            color: "limegreen",
+            indices: rightIndices,
+          },
+        ]}
         speed={speed}
         generateData={generateData}
         startSort={startSort}

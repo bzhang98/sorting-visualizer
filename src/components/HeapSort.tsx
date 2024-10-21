@@ -14,14 +14,14 @@ export default function InsertionSort({
 }) {
   const [data, setData] = useState<{ id: string; value: number }[]>([]);
   const [comparedIndices, setComparedIndices] = useState<number[]>([]);
-  const [highlightedIndices, setHighlightedIndices] = useState<number[]>([]);
+  const [sortedPartition, setSortedPartition] = useState<number[]>([]);
   const isSorting = useRef<"idle" | "playing" | "paused">("idle");
   const sortGeneratorRef = useRef<Generator | null>(null);
   const animationFrameId = useRef<number | null>(null);
 
   const generateData = useCallback(() => {
     setComparedIndices([]);
-    setHighlightedIndices([]);
+    setSortedPartition([]);
     isSorting.current = "idle";
     if (animationFrameId.current) {
       cancelAnimationFrame(animationFrameId.current);
@@ -42,16 +42,13 @@ export default function InsertionSort({
 
   type HeapSortYield = {
     array: { id: string; value: number }[];
-    action: "compare" | "swap" | "next" | "complete";
     comparedIndices: number[];
-    highlightedIndices: number[];
+    sortedPartition: number[] | null;
   };
 
   function* heapSortGenerator(
-    arr: { id: string; value: number }[]
+    array: { id: string; value: number }[]
   ): Generator<HeapSortYield> {
-    const array = [...arr];
-
     // Build max heap
     function* percolate(
       array: { id: string; value: number }[],
@@ -68,12 +65,11 @@ export default function InsertionSort({
 
       yield {
         array,
-        action: "compare",
-        comparedIndices: [
-          index,
-          leftChildIndex < heapSize ? leftChildIndex : -1,
-        ],
-        highlightedIndices: [heapSize < array.length ? heapSize - 1 : -1],
+        comparedIndices: [index, leftChildIndex],
+        sortedPartition: Array.from(
+          { length: array.length - heapSize },
+          (_, i) => heapSize + i
+        ),
       };
       if (
         leftChildIndex < heapSize &&
@@ -84,9 +80,11 @@ export default function InsertionSort({
 
       yield {
         array,
-        action: "compare",
         comparedIndices: [index, rightChildIndex],
-        highlightedIndices: [heapSize < array.length ? heapSize - 1 : -1],
+        sortedPartition: Array.from(
+          { length: array.length - heapSize },
+          (_, i) => heapSize + i
+        ),
       };
       if (
         rightChildIndex < heapSize &&
@@ -98,9 +96,11 @@ export default function InsertionSort({
       if (largestIndex !== index) {
         yield {
           array,
-          action: "compare",
           comparedIndices: [index, largestIndex],
-          highlightedIndices: [heapSize < array.length ? heapSize - 1 : -1],
+          sortedPartition: Array.from(
+            { length: array.length - heapSize },
+            (_, i) => heapSize + i
+          ),
         };
         [array[index], array[largestIndex]] = [
           array[largestIndex],
@@ -109,19 +109,24 @@ export default function InsertionSort({
 
         yield {
           array,
-          action: "swap",
           comparedIndices: [index, largestIndex],
-          highlightedIndices: [heapSize < array.length ? heapSize - 1 : -1],
+          sortedPartition: Array.from(
+            { length: array.length - heapSize },
+            (_, i) => heapSize + i
+          ),
         };
         yield {
           array,
-          action: "swap",
           comparedIndices: [index, largestIndex],
-          highlightedIndices: [heapSize < array.length ? heapSize - 1 : -1],
+          sortedPartition: Array.from(
+            { length: array.length - heapSize },
+            (_, i) => heapSize + i
+          ),
         };
         yield* percolate(array, largestIndex, heapSize);
       }
     }
+
     for (let i = Math.floor(array.length / 2) - 1; i >= 0; i--) {
       yield* percolate(array, i, array.length);
     }
@@ -130,40 +135,41 @@ export default function InsertionSort({
     for (let i = array.length - 1; i >= 0; i--) {
       yield {
         array,
-        action: "compare",
         comparedIndices: [0, i],
-        highlightedIndices: [i],
+        sortedPartition: Array.from(
+          { length: array.length - i },
+          (_, j) => i + j
+        ),
       };
       [array[0], array[i]] = [array[i], array[0]];
 
       yield {
         array,
-        action: "compare",
         comparedIndices: [0, i],
-        highlightedIndices: [i],
+        sortedPartition: Array.from(
+          { length: array.length - i },
+          (_, j) => i + j
+        ),
       };
 
       yield {
         array,
-        action: "swap",
         comparedIndices: [0],
-        highlightedIndices: [i],
+        sortedPartition: Array.from(
+          { length: array.length - i },
+          (_, j) => i + j
+        ),
       };
       yield {
         array,
-        action: "swap",
         comparedIndices: [0],
-        highlightedIndices: [i],
+        sortedPartition: Array.from(
+          { length: array.length - i },
+          (_, j) => i + j
+        ),
       };
       yield* percolate(array, 0, i);
     }
-
-    return {
-      array,
-      action: "complete",
-      comparedIndices: [],
-      highlightedIndices: [],
-    };
   }
 
   const step = useCallback(() => {
@@ -172,10 +178,10 @@ export default function InsertionSort({
     const next =
       sortGeneratorRef.current.next() as IteratorResult<HeapSortYield>;
     if (!next.done) {
-      const { array, comparedIndices, highlightedIndices } = next.value;
+      const { array, comparedIndices, sortedPartition } = next.value;
       setData(array);
       setComparedIndices(comparedIndices);
-      setHighlightedIndices(highlightedIndices);
+      setSortedPartition(sortedPartition || []);
 
       animationFrameId.current = requestAnimationFrame(() => {
         setTimeout(step, 250 / speed);
@@ -183,7 +189,7 @@ export default function InsertionSort({
     } else {
       isSorting.current = "idle";
       setComparedIndices([]);
-      setHighlightedIndices([]);
+      setSortedPartition([]);
     }
   }, [speed, isSorting]);
 
@@ -214,9 +220,11 @@ export default function InsertionSort({
       <Bars
         data={data}
         maxValue={maxValue}
-        comparedIndices={comparedIndices}
         numBars={numBars}
-        highlightedIndices={highlightedIndices}
+        highlightedIndices={[
+          { color: "lightcoral", indices: comparedIndices },
+          { color: "limegreen", indices: sortedPartition },
+        ]}
         speed={speed}
         generateData={generateData}
         startSort={startSorting}

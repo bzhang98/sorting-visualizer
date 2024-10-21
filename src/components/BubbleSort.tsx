@@ -45,9 +45,8 @@ export default function BubbleSort({
   };
 
   function* bubbleSortGenerator(
-    arr: { id: string; value: number }[]
+    array: { id: string; value: number }[]
   ): Generator<BubbleSortYield> {
-    const array = [...arr];
     for (let i = 0; i < array.length - 1; i++) {
       for (let j = 0; j < array.length - i - 1; j++) {
         yield {
@@ -121,7 +120,7 @@ export default function BubbleSort({
       <Bars
         data={data}
         maxValue={maxValue}
-        comparedIndices={comparedIndices}
+        highlightedIndices={[{ indices: comparedIndices, color: "lightcoral" }]}
         numBars={numBars}
         speed={speed}
         generateData={generateData}

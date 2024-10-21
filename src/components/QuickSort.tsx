@@ -13,15 +13,22 @@ export default function QuickSort({
   speed: number;
 }) {
   const [data, setData] = useState<{ id: string; value: number }[]>([]);
-  const [comparedIndices, setComparedIndices] = useState<number[]>([]);
-  const [highlightedIndices, setHighlightedIndices] = useState<number[]>([]);
+
+  const [pointers, setPointers] = useState<{ index: number; label?: string }[]>(
+    []
+  );
+  const [startIndex, setStartIndex] = useState<number | null>(null);
+  const [pivotIndex, setPivotIndex] = useState<number | null>(null);
+
   const isSorting = useRef<"idle" | "playing" | "paused">("idle");
   const sortGeneratorRef = useRef<Generator | null>(null);
   const animationFrameId = useRef<number | null>(null);
 
   const generateData = useCallback(() => {
-    setComparedIndices([]);
-    setHighlightedIndices([]);
+    setPointers([]);
+    setStartIndex(null);
+    setPivotIndex(null);
+
     isSorting.current = "idle";
     if (animationFrameId.current) {
       cancelAnimationFrame(animationFrameId.current);
@@ -42,9 +49,9 @@ export default function QuickSort({
 
   type QuickSortYield = {
     arr: { id: string; value: number }[];
-    action: "compare" | "swap" | "next" | "complete";
-    comparedIndices: number[];
-    highlightedIndices: number[];
+    pointers: { index: number; label: string }[];
+    start: number;
+    pivot: number;
   };
 
   function* quickSortGenerator(
@@ -55,14 +62,38 @@ export default function QuickSort({
     if (start >= end) {
       return;
     }
+
+    const midIndex = Math.floor((start + end) / 2);
+    const medianIndex = [
+      { value: arr[start].value, index: start },
+      { value: arr[midIndex].value, index: midIndex },
+      { value: arr[end].value, index: end },
+    ].sort((a, b) => a.value - b.value)[1].index;
+
+    yield {
+      arr,
+      pointers: [
+        { index: start, label: "Start" },
+        { index: midIndex, label: "Middle" },
+        { index: end, label: "End" },
+      ],
+      start: -1,
+      pivot: -1,
+    };
+
+    [arr[medianIndex], arr[end]] = [arr[end], arr[medianIndex]];
+
     const pivotValue = arr[end].value;
     let j = start - 1;
     for (let i = start; i <= end; i++) {
       yield {
         arr,
-        action: "compare",
-        comparedIndices: [i, j],
-        highlightedIndices: [end],
+        pointers: [
+          { index: i, label: "i" },
+          { index: j, label: "j" },
+        ],
+        start,
+        pivot: end,
       };
       if (arr[i].value > pivotValue) {
         continue;
@@ -70,23 +101,33 @@ export default function QuickSort({
       j++;
       yield {
         arr,
-        action: "compare",
-        comparedIndices: [i, j],
-        highlightedIndices: [end],
+        pointers: [
+          { index: i, label: "i" },
+          { index: j, label: "j" },
+        ],
+        start,
+        pivot: end,
       };
       if (i > j) {
         [arr[i], arr[j]] = [arr[j], arr[i]];
         yield {
           arr,
-          action: "swap",
-          comparedIndices: [i, j],
-          highlightedIndices: [end],
+          pointers: [
+            { index: i, label: "i" },
+            { index: j, label: "j" },
+          ],
+
+          start,
+          pivot: end,
         };
         yield {
           arr,
-          action: "swap",
-          comparedIndices: [i, j],
-          highlightedIndices: [end],
+          pointers: [
+            { index: i, label: "i" },
+            { index: j, label: "j" },
+          ],
+          start,
+          pivot: end,
         };
       }
     }
@@ -100,18 +141,20 @@ export default function QuickSort({
     const next =
       sortGeneratorRef.current.next() as IteratorResult<QuickSortYield>;
     if (!next.done) {
-      const { arr, comparedIndices, highlightedIndices } = next.value;
+      const { arr, pointers, start, pivot } = next.value;
       setData(arr);
-      setComparedIndices(comparedIndices);
-      setHighlightedIndices(highlightedIndices);
+      setPointers(pointers);
+      setStartIndex(start);
+      setPivotIndex(pivot);
 
       animationFrameId.current = requestAnimationFrame(() => {
         setTimeout(step, 250 / speed);
       });
     } else {
       isSorting.current = "idle";
-      setComparedIndices([]);
-      setHighlightedIndices([]);
+      setPointers([]);
+      setStartIndex(null);
+      setPivotIndex(null);
     }
   }, [speed, isSorting]);
 
@@ -142,9 +185,16 @@ export default function QuickSort({
       <Bars
         data={data}
         maxValue={maxValue}
-        comparedIndices={comparedIndices}
         numBars={numBars}
-        highlightedIndices={highlightedIndices}
+        highlightedIndices={[
+          { indices: [pivotIndex as number], color: "green", label: "Pivot" },
+          ...pointers.map(({ index, label }) => ({
+            indices: [index],
+            color: "red",
+            label,
+          })),
+          { indices: [startIndex as number], color: "blue", label: "Start" },
+        ]}
         speed={speed}
         generateData={generateData}
         startSort={startSorting}
@@ -157,10 +207,10 @@ export default function QuickSort({
 
 const description = {
   description:
-    "Quick Sort is a divide-and-conquer comparison sorting algorithm. It sorts a list by selecting a 'pivot' element, partitioning the list into two halves—elements less than the pivot and elements greater than the pivot—and recursively sorting the sublists. Quick Sort is known for its efficiency on average and is often used in practice due to its low overhead and in-place sorting.",
-  link: "https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/quick-sort-inplace.ts",
+    "Quick Sort is a divide-and-conquer comparison sorting algorithm. It sorts a list by selecting a 'pivot' element, partitioning the list into two halves—elements less than the pivot and elements greater than the pivot—and recursively sorting the sublists. We maintain two pointers, i and j, with i starting at the beginning of the list, and j initialized to start - 1. As we iterate through the elements, i scans through the list to find elements that are less than the pivot, while j keeps track of the last position where a smaller element was found. When i finds such an element, we increment j and swap the elements at i and j, ensuring that all elements to the left of j are less than or equal to the pivot. This process continues until i has traversed all elements. Once the iteration is complete, we place the pivot in its correct position by swapping it with the element at j + 1, thereby effectively partitioning the list into two halves: elements less than or equal to the pivot and elements greater than the pivot. The pivot selection strategy can affect the algorithm's performance. This visualization uses 'median-of-three' where the pivot is the median of the first, middle, and last elements.This reduces the likelihood of the worst-case time complexity as compared to other approaches, such as always setting the last element as the pivot.",
+  link: "https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/quick-sort.ts",
   timeComplexity:
-    "In the average and best cases, Quick Sort has a time complexity of O(n log n) due to the balanced partitioning of the list. However, in the worst case (e.g., when the pivot selection results in highly unbalanced partitions), its time complexity is O(n²).",
+    "In the average and best cases, when the pivot selection creates balanced partititions, Quick Sort has a time complexity of O(n log n). However, in the worst case, when the pivot selection consistently results in unbalanced halves, its time complexity is closer to O(n²).",
   spaceComplexity:
     "Quick Sort has a space complexity of O(log n) due to the recursive calls in the stack when implemented in-place. If implemented with additional memory for partitions, space complexity can increase.",
   stability:

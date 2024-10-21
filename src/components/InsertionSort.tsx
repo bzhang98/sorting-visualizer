@@ -13,14 +13,14 @@ export default function SelectionSort({
   speed: number;
 }) {
   const [data, setData] = useState<{ id: string; value: number }[]>([]);
-  const [comparedIndices, setComparedIndices] = useState<number[]>([]);
-  const [highlightedIndices, setHighlightedIndices] = useState<number[]>([]);
+  const [highlightedIndices, setHighlightedIndices] = useState<null | number[]>(
+    null
+  );
   const isSorting = useRef<"idle" | "playing" | "paused">("idle");
   const sortGeneratorRef = useRef<Generator | null>(null);
   const animationFrameId = useRef<number | null>(null);
 
   const generateData = useCallback(() => {
-    setComparedIndices([]);
     setHighlightedIndices([]);
     isSorting.current = "idle";
     if (animationFrameId.current) {
@@ -42,57 +42,43 @@ export default function SelectionSort({
 
   type InsertionSortYield = {
     array: { id: string; value: number }[];
-    action: "compare" | "swap" | "next" | "complete";
-    comparedIndices: number[];
-    highlightedIndices: number[];
+    highlightedIndices: number[] | null;
   };
 
   function* insertionSortGenerator(
-    arr: { id: string; value: number }[]
+    array: { id: string; value: number }[]
   ): Generator<InsertionSortYield> {
-    const array = [...arr];
-
     for (let i = 1; i < array.length; i++) {
       for (let j = i; j > 0; j--) {
         yield {
           array,
-          action: "compare",
-          comparedIndices: [j - 1, j],
-          highlightedIndices: [i],
+          highlightedIndices: [j, j - 1],
         };
 
         if (array[j - 1].value > array[j].value) {
-          [array[j - 1], array[j]] = [array[j], array[j - 1]];
           yield {
             array,
-            action: "swap",
-            comparedIndices: [j - 1, j],
-            highlightedIndices: [i],
+            highlightedIndices: [j, j - 1],
+          };
+          [array[j - 1], array[j]] = [array[j], array[j - 1]];
+
+          yield {
+            array,
+            highlightedIndices: [j - 1, j],
           };
           yield {
             array,
-            action: "swap",
-            comparedIndices: [j - 1, j],
-            highlightedIndices: [i],
+            highlightedIndices: [j - 1, j],
           };
         } else {
           yield {
             array,
-            action: "next",
-            comparedIndices: [j - 1, j],
-            highlightedIndices: [i],
+            highlightedIndices: [j, j - 1],
           };
           break;
         }
       }
     }
-
-    return {
-      array,
-      action: "complete",
-      comparedIndices: [],
-      highlightedIndices: [],
-    };
   }
 
   const step = useCallback(() => {
@@ -101,9 +87,8 @@ export default function SelectionSort({
     const next =
       sortGeneratorRef.current.next() as IteratorResult<InsertionSortYield>;
     if (!next.done) {
-      const { array, comparedIndices, highlightedIndices } = next.value;
+      const { array, highlightedIndices } = next.value;
       setData(array);
-      setComparedIndices(comparedIndices);
       setHighlightedIndices(highlightedIndices);
 
       animationFrameId.current = requestAnimationFrame(() => {
@@ -111,7 +96,6 @@ export default function SelectionSort({
       });
     } else {
       isSorting.current = "idle";
-      setComparedIndices([]);
       setHighlightedIndices([]);
     }
   }, [speed, isSorting]);
@@ -143,9 +127,17 @@ export default function SelectionSort({
       <Bars
         data={data}
         maxValue={maxValue}
-        comparedIndices={comparedIndices}
         numBars={numBars}
-        highlightedIndices={highlightedIndices}
+        highlightedIndices={[
+          {
+            indices: highlightedIndices ? [highlightedIndices[0]] : [],
+            color: "limegreen",
+          },
+          {
+            indices: highlightedIndices ? [highlightedIndices[1]] : [],
+            color: "lightcoral",
+          },
+        ]}
         speed={speed}
         generateData={generateData}
         startSort={startSorting}

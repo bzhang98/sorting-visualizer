@@ -13,15 +13,23 @@ export default function SelectionSort({
   speed: number;
 }) {
   const [data, setData] = useState<{ id: string; value: number }[]>([]);
-  const [comparedIndices, setComparedIndices] = useState<number[]>([]);
-  const [highlightedIndices, setHighlightedIndices] = useState<number[]>([]);
+
+  const [currentMinIndex, setCurrentMinIndex] = useState<number | null>(null);
+  const [currentInspectedIndex, setCurrentInspectedIndex] = useState<
+    number | null
+  >(null);
+  const [lastUnsortedIndex, setLastUnsortedIndex] = useState<number | null>(
+    null
+  );
+
   const isSorting = useRef<"idle" | "playing" | "paused">("idle");
   const sortGeneratorRef = useRef<Generator | null>(null);
   const animationFrameId = useRef<number | null>(null);
 
   const generateData = useCallback(() => {
-    setComparedIndices([]);
-    setHighlightedIndices([]);
+    setCurrentInspectedIndex(null);
+    setCurrentMinIndex(null);
+    setLastUnsortedIndex(null);
     isSorting.current = "idle";
     if (animationFrameId.current) {
       cancelAnimationFrame(animationFrameId.current);
@@ -42,49 +50,51 @@ export default function SelectionSort({
 
   type SelectionSortYield = {
     array: { id: string; value: number }[];
-    action: "compare" | "swap" | "next" | "complete";
-    comparedIndices: number[];
-    highlightedIndices: number[];
+    currentMinIndex: number | null;
+    currentInspectedIndex: number | null;
+    lastUnsortedIndex: number;
   };
 
   function* selectionSortGenerator(
-    arr: { id: string; value: number }[]
+    array: { id: string; value: number }[]
   ): Generator<SelectionSortYield> {
-    const array = [...arr];
     for (let i = 0; i < array.length; i++) {
       let currentMinIndex = i;
 
       for (let j = i + 1; j < array.length; j++) {
         yield {
           array,
-          action: "compare",
-          comparedIndices: [currentMinIndex, j],
-          highlightedIndices: [i],
+          currentMinIndex,
+          currentInspectedIndex: j,
+          lastUnsortedIndex: i,
         };
         if (array[j].value < array[currentMinIndex].value) {
           currentMinIndex = j;
         }
       }
-      [array[i], array[currentMinIndex]] = [array[currentMinIndex], array[i]];
+      if (currentMinIndex !== i) {
+        yield {
+          array,
+          currentMinIndex,
+          currentInspectedIndex: null,
+          lastUnsortedIndex: i,
+        };
+        [array[currentMinIndex], array[i]] = [array[i], array[currentMinIndex]];
+        yield {
+          array,
+          currentMinIndex: i,
+          currentInspectedIndex: null,
+          lastUnsortedIndex: currentMinIndex,
+        };
+      }
+
       yield {
         array,
-        action: "swap",
-        comparedIndices: [currentMinIndex, i],
-        highlightedIndices: [i],
-      };
-      yield {
-        array,
-        action: "next",
-        comparedIndices: [currentMinIndex, i],
-        highlightedIndices: [i],
+        currentMinIndex: i,
+        currentInspectedIndex: null,
+        lastUnsortedIndex: currentMinIndex,
       };
     }
-    return {
-      array,
-      action: "complete",
-      comparedIndices: [],
-      highlightedIndices: [],
-    };
   }
 
   const step = useCallback(() => {
@@ -93,18 +103,25 @@ export default function SelectionSort({
     const next =
       sortGeneratorRef.current.next() as IteratorResult<SelectionSortYield>;
     if (!next.done) {
-      const { array, comparedIndices, highlightedIndices } = next.value;
+      const {
+        array,
+        currentMinIndex,
+        currentInspectedIndex,
+        lastUnsortedIndex,
+      } = next.value;
       setData(array);
-      setComparedIndices(comparedIndices);
-      setHighlightedIndices(highlightedIndices);
+      setCurrentMinIndex(currentMinIndex);
+      setCurrentInspectedIndex(currentInspectedIndex);
+      setLastUnsortedIndex(lastUnsortedIndex);
 
       animationFrameId.current = requestAnimationFrame(() => {
         setTimeout(step, 250 / speed);
       });
     } else {
       isSorting.current = "idle";
-      setComparedIndices([]);
-      setHighlightedIndices([]);
+      setCurrentInspectedIndex(null);
+      setCurrentMinIndex(null);
+      setLastUnsortedIndex(null);
     }
   }, [speed, isSorting]);
 
@@ -135,9 +152,33 @@ export default function SelectionSort({
       <Bars
         data={data}
         maxValue={maxValue}
-        comparedIndices={comparedIndices}
         numBars={numBars}
-        highlightedIndices={highlightedIndices}
+        highlightedIndices={[
+          ...(currentMinIndex === lastUnsortedIndex
+            ? [
+                {
+                  indices: [currentMinIndex as number],
+                  color: "goldenrod",
+                  label: "Min / Next to Swap",
+                },
+              ]
+            : [
+                {
+                  indices: [currentMinIndex as number],
+                  color: "goldenrod",
+                  label: "Min",
+                },
+                {
+                  indices: [lastUnsortedIndex as number],
+                  color: "lightgreen",
+                  label: "Next to Swap",
+                },
+              ]),
+          {
+            indices: [currentInspectedIndex as number],
+            color: "lightcoral",
+          },
+        ]}
         speed={speed}
         generateData={generateData}
         startSort={startSorting}
