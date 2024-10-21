@@ -79,7 +79,7 @@ export default function MergeSort({
         left += subarraySize * 2;
         right += subarraySize * 2;
         await new Promise((resolve) => setTimeout(resolve, 250 / speed));
-      }
+      } 
       subarraySize *= 2;
     }
 
@@ -92,7 +92,7 @@ export default function MergeSort({
       let rightPointer = 0;
 
       while (leftPointer < left.length && rightPointer < right.length) {
-        if (left[leftPointer].value < right[rightPointer].value) {
+        if (left[leftPointer].value <= right[rightPointer].value) {
           mergedArray.push(left[leftPointer]);
           leftPointer++;
         } else {
@@ -149,7 +149,7 @@ export default function MergeSort({
 
 const description = {
   description:
-    "Merge Sort is a divide-and-conquer comparison sorting algorithm. It works by recursively splitting the input list into smaller sublists until each sublist contains a single element. It then merges these sublists in a sorted manner to produce a final sorted list. Merge Sort is well-suited for large datasets due to its predictable time complexity.",
+    "Merge Sort is a divide-and-conquer comparison sorting algorithm. It works by recursively splitting the input list into smaller sublists until each sublist contains a single element. It then merges these sublists in a sorted manner to produce a final sorted list. Alternatively, Merge Sort can be implemented iteratively, where we start with the smallest possible subarray (a list with a single element), and merge them together, doubling the subarray size each time until we have the final sorted list. Merge Sort is well-suited for large datasets due to its predictable time complexity.",
   link: "https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/merge-sort.ts",
   timeComplexity:
     "Merge Sort has a time complexity of O(n log n) in all cases (best, average, and worst). The list is split in half until each sublist contains a single element, which takes O(log n) time. Each time, the lists must be merged together, which is an O(n) operation, resulting in a time complexity of O(n log n).",
