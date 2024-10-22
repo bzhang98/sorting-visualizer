@@ -43,21 +43,21 @@ export default function Bars({
     return "lightsteelblue"; // Default color if index is not highlighted
   };
 
-  const getLabel = (index: number) => {
+  const getLabels = (index: number) => {
     if (!highlightedIndices) {
-      return null;
+      return [];
     }
-    for (const { indices, label } of highlightedIndices) {
-      if (indices.includes(index)) {
-        return label;
-      }
-    }
-    return null;
+    return highlightedIndices
+      .filter(({ indices, label }) => indices.includes(index) && label)
+      .map(({ label }) => label as string);
   };
+
+  const LABEL_HEIGHT = 8; // Height of each label
+  const LABEL_SPACING = 1; // Spacing between labels
 
   return (
     <div
-      className="w-[100vw] h-[100vh] p-8"
+      className="w-[100vw] p-8"
       style={{
         width: "clamp(700px, 100%, 1000px)",
         margin: "0 auto",
@@ -81,7 +81,7 @@ export default function Bars({
         />
       </div>
       <div
-        className="relative my-16"
+        className="relative mt-16 mb-32"
         ref={containerRef}
         style={{ aspectRatio: "1 / 0.4" }}
       >
@@ -92,10 +92,8 @@ export default function Bars({
             const heightPercentage = (value / 100) * 100;
             const textYPosition = `${100 - heightPercentage - 2}%`;
             const textColor = "black";
-            const label = getLabel(index);
-            const labelYPosition = `${110}%`; // Adjust this to move label further down
-            const lineYStart = `${105}%`;
-            const lineYEnd = `${100}%`; // Adjust to place line under the bar
+            const labels = getLabels(index);
+            const baseLineYStart = 110; // Base position for the first label line
 
             return (
               <motion.svg
@@ -116,29 +114,29 @@ export default function Bars({
                   height={`${heightPercentage}%`}
                   fill={getFillColor(index)}
                 />
-                {label && (
-                  <>
-                    <text
-                      x="50%"
-                      y={labelYPosition} // Position text below the bar
-                      fill="black"
-                      fontSize="12"
-                      fontWeight="bold"
-                      textAnchor="middle"
-                    >
-                      {label}
-                    </text>
-                    <line
-                      x1="50%"
-                      y1={lineYEnd} // Start of the line (near text)
-                      x2="50%"
-                      y2={lineYStart} // End of the line (bottom of the bar)
-                      stroke="black"
-                      strokeWidth="2"
-                      markerEnd="url(#arrowhead)" // Optional: Use this if you define an arrow marker
-                    />
-                  </>
-                )}
+
+                {labels.map((label, labelIndex) => {
+                  const labelYPosition = `${
+                    baseLineYStart +
+                    (labelIndex * (LABEL_HEIGHT + LABEL_SPACING)) / 2
+                  }%`;
+
+                  return (
+                    <g key={`${label}-${labelIndex}`}>
+                      <text
+                        x="50%"
+                        y={labelYPosition}
+                        fill="black"
+                        fontSize="18"
+                        fontWeight="semibold"
+                        textAnchor="middle"
+                      >
+                        {label}
+                      </text>
+                    </g>
+                  );
+                })}
+
                 {barWidth >= 50 && (
                   <text
                     x="50%"
