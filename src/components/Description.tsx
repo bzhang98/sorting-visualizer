@@ -12,14 +12,20 @@ interface DescriptionProps {
 
 export default function Description({ description }: DescriptionProps) {
   return (
-    <div className="text-lg w-[80vw] m-auto mt-8 p-2">
+    <div className="text-lg mt-8 p-2">
       <p className="mb-4">{description.description}</p>
       <a
         href={description.link}
         target="_blank"
         className="flex gap-2 items-center mb-8 hover:underline"
       >
-        See the TypeScript implementation here <ArrowUpRight size={24} />
+        <img
+          src="/icons/typescript.svg"
+          alt="typescript icon"
+          width={50}
+          className="rounded-md"
+        />
+        See the implementation in Typescript <ArrowUpRight size={24} />
       </a>
       <ul>
         <li className="py-4 border-t-2 grid grid-cols-[12rem_1fr]">
