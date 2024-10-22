@@ -22,19 +22,14 @@ export default function SelectionSort() {
     setLastUnsortedIndex(null);
   }, []);
 
-  const {
-    data,
-    setData,
-    sortGeneratorRef,
-    animationFrameId,
-    generateData,
-  } = useGenerateData({
-    numBars,
-    minValue,
-    maxValue,
-    isSorting,
-    resetData: resetPointers,
-  });
+  const { data, setData, sortGeneratorRef, animationFrameId, generateData } =
+    useGenerateData({
+      numBars,
+      minValue,
+      maxValue,
+      isSorting,
+      resetData: resetPointers,
+    });
 
   useEffect(() => {
     generateData(sortOrder);
@@ -145,29 +140,19 @@ export default function SelectionSort() {
       <Bars
         data={data}
         highlightedIndices={[
-          ...(currentMinIndex === lastUnsortedIndex
-            ? [
-                {
-                  indices: [currentMinIndex as number],
-                  color: "goldenrod",
-                  label: "Min / Next to Swap",
-                },
-              ]
-            : [
-                {
-                  indices: [currentMinIndex as number],
-                  color: "goldenrod",
-                  label: "Min",
-                },
-                {
-                  indices: [lastUnsortedIndex as number],
-                  color: "lightgreen",
-                  label: "Next to Swap",
-                },
-              ]),
           {
             indices: [currentInspectedIndex as number],
             color: "lightcoral",
+          },
+          {
+            indices: [currentMinIndex as number],
+            color: "goldenrod",
+            label: "Min",
+          },
+          {
+            indices: [lastUnsortedIndex as number],
+            color: "lightgreen",
+            label: "Next to Swap",
           },
         ]}
         generateData={generateData}
