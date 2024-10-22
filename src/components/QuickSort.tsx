@@ -1,18 +1,24 @@
 import Bars from "./Bars";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Description from "./Description";
-import { useOptionsContext } from "../context/options-context";
+import { useAppContext } from "../context/app-context";
 import useGenerateData from "../hooks/use-generate-data";
 
 export default function QuickSort() {
-  const { numBars, maxValue, minValue, speed, sortOrder } = useOptionsContext();
+  const {
+    numBars,
+    maxValue,
+    minValue,
+    speed,
+    sortOrder,
+    isSorting,
+    updateIsSorting,
+  } = useAppContext();
   const [pointers, setPointers] = useState<{ index: number; label?: string }[]>(
     []
   );
   const [startIndex, setStartIndex] = useState<number | null>(null);
   const [pivotIndex, setPivotIndex] = useState<number | null>(null);
-
-  const isSorting = useRef<"idle" | "playing" | "paused">("idle");
 
   const resetPointers = useCallback(() => {
     setPointers([]);
@@ -20,17 +26,23 @@ export default function QuickSort() {
     setPivotIndex(null);
   }, []);
 
-  const { data, setData, sortGeneratorRef, animationFrameId, generateData } =
-    useGenerateData({
-      numBars,
-      minValue,
-      maxValue,
-      isSorting,
-      resetData: resetPointers,
-    });
+  const {
+    data,
+    setData,
+    sortGeneratorRef,
+    animationFrameId,
+    generateData,
+  } = useGenerateData({
+    numBars,
+    minValue,
+    maxValue,
+    updateIsSorting,
+    resetData: resetPointers,
+  });
 
   useEffect(() => {
     generateData(sortOrder);
+    updateIsSorting("idle");
   }, []);
 
   type QuickSortYield = {
@@ -137,7 +149,7 @@ export default function QuickSort() {
         setTimeout(step, 250 / speed);
       });
     } else {
-      isSorting.current = "idle";
+      updateIsSorting("idle");
       setPointers([]);
       setStartIndex(null);
       setPivotIndex(null);
@@ -148,7 +160,7 @@ export default function QuickSort() {
     if (isSorting.current === "playing") return;
 
     if (isSorting.current === "paused") {
-      isSorting.current = "playing";
+      updateIsSorting("playing");
       if (!sortGeneratorRef.current) {
         sortGeneratorRef.current = quickSortGenerator([...data]);
       }
@@ -156,13 +168,13 @@ export default function QuickSort() {
       return;
     }
 
-    isSorting.current = "playing";
+    updateIsSorting("playing");
     sortGeneratorRef.current = quickSortGenerator([...data]);
     step();
   }, [isSorting, data, step]);
 
   const pauseSorting = useCallback(() => {
-    isSorting.current = "paused";
+    updateIsSorting("paused");
     if (animationFrameId.current) {
       cancelAnimationFrame(animationFrameId.current);
     }

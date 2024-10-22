@@ -1,15 +1,22 @@
 import Bars from "./Bars";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Description from "./Description";
 import useGenerateData from "../hooks/use-generate-data";
-import { useOptionsContext } from "../context/options-context";
+import { useAppContext } from "../context/app-context";
 
 export default function SelectionSort() {
-  const { numBars, maxValue, minValue, speed, sortOrder } = useOptionsContext();
+  const {
+    numBars,
+    maxValue,
+    minValue,
+    speed,
+    sortOrder,
+    isSorting,
+    updateIsSorting,
+  } = useAppContext();
   const [highlightedIndices, setHighlightedIndices] = useState<null | number[]>(
     null
   );
-  const isSorting = useRef<"idle" | "playing" | "paused">("idle");
 
   const resetPointers = useCallback(() => {
     setHighlightedIndices([]);
@@ -20,12 +27,13 @@ export default function SelectionSort() {
       numBars,
       minValue,
       maxValue,
-      isSorting,
+      updateIsSorting,
       resetData: resetPointers,
     });
 
   useEffect(() => {
     generateData(sortOrder);
+    updateIsSorting("idle");
   }, []);
 
   type InsertionSortYield = {
@@ -83,7 +91,7 @@ export default function SelectionSort() {
         setTimeout(step, 250 / speed);
       });
     } else {
-      isSorting.current = "idle";
+      updateIsSorting("idle");
       resetPointers();
     }
   }, [speed, isSorting]);
@@ -92,7 +100,7 @@ export default function SelectionSort() {
     if (isSorting.current === "playing") return;
 
     if (isSorting.current === "paused") {
-      isSorting.current = "playing";
+      updateIsSorting("playing");
       if (!sortGeneratorRef.current) {
         sortGeneratorRef.current = insertionSortGenerator([...data]);
       }
@@ -100,13 +108,13 @@ export default function SelectionSort() {
       return;
     }
 
-    isSorting.current = "playing";
+    updateIsSorting("playing");
     sortGeneratorRef.current = insertionSortGenerator([...data]);
     step();
   }, [isSorting, data, step]);
 
   const pauseSorting = useCallback(() => {
-    isSorting.current = "paused";
+    updateIsSorting("paused");
     if (animationFrameId.current) {
       cancelAnimationFrame(animationFrameId.current);
     }

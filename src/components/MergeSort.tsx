@@ -1,23 +1,26 @@
 import Bars from "./Bars";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Description from "./Description";
-import { useOptionsContext } from "../context/options-context";
+import { useAppContext } from "../context/app-context";
 import useGenerateData from "../hooks/use-generate-data";
 
 export default function MergeSort() {
-  const { numBars, maxValue, minValue, speed, sortOrder } = useOptionsContext();
+  const {
+    numBars,
+    maxValue,
+    minValue,
+    speed,
+    sortOrder,
+    isSorting,
+    updateIsSorting,
+  } = useAppContext();
 
   const [leftIndices, setLeftIndices] = useState<number[]>([]);
   const [rightIndices, setRightIndices] = useState<number[]>([]);
-  const outerIndexRef = useRef(0);
-  const innerIndexRef = useRef<null | number>(null);
-  const isSorting = useRef<"idle" | "playing" | "paused">("idle");
 
   const resetPointers = useCallback(() => {
     setLeftIndices([]);
     setRightIndices([]);
-    outerIndexRef.current = 0;
-    innerIndexRef.current = null;
   }, []);
 
   const { data, setData, sortGeneratorRef, animationFrameId, generateData } =
@@ -25,12 +28,13 @@ export default function MergeSort() {
       numBars,
       minValue,
       maxValue,
-      isSorting,
+      updateIsSorting,
       resetData: resetPointers,
     });
 
   useEffect(() => {
     generateData(sortOrder);
+    updateIsSorting("idle");
   }, []);
 
   type MergeSortYield = {
@@ -137,7 +141,7 @@ export default function MergeSort() {
         setTimeout(step, 750 / speed);
       });
     } else {
-      isSorting.current = "idle";
+      updateIsSorting("idle");
       resetPointers();
     }
   }, [speed, isSorting]);
@@ -146,7 +150,7 @@ export default function MergeSort() {
     if (isSorting.current === "playing") return;
 
     if (isSorting.current === "paused") {
-      isSorting.current = "playing";
+      updateIsSorting("playing");
       if (!sortGeneratorRef.current) {
         sortGeneratorRef.current = mergeSortGenerator([...data]);
       }
@@ -154,13 +158,13 @@ export default function MergeSort() {
       return;
     }
 
-    isSorting.current = "playing";
+    updateIsSorting("playing");
     sortGeneratorRef.current = mergeSortGenerator([...data]);
     step();
   }, [isSorting, data, step]);
 
   const pauseSorting = useCallback(() => {
-    isSorting.current = "paused";
+    updateIsSorting("paused");
     if (animationFrameId.current) {
       cancelAnimationFrame(animationFrameId.current);
     }
