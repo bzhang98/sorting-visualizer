@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Pause, Play } from "lucide-react";
 import { useRef } from "react";
-import { useOptionsContext } from "../context/options-context";
+import { useAppContext } from "../context/app-context";
 
 export default function Bars({
   data,
@@ -27,7 +27,8 @@ export default function Bars({
     setMinValue,
     maxValue,
     setMaxValue,
-  } = useOptionsContext();
+    sortingState
+  } = useAppContext();
 
   const containerRef = useRef<null | HTMLDivElement>(null);
 
@@ -78,6 +79,7 @@ export default function Bars({
             setSpeed(Number(e.target.value));
           }}
           className="w-[300px]"
+          disabled={sortingState === "playing"}
         />
       </div>
       <div
