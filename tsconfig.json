@@ -13,10 +13,10 @@
     "module": "CommonJS",
     "outDir": "out",
     "sourceMap": true,
-    "baseUrl": ".",
+    "baseUrl": "src",
     "paths": {
       "@/*": [
-        "src/*"
+        "./*"
       ]
     }
   }
