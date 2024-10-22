@@ -27,7 +27,7 @@ export default function Bars({
     setMinValue,
     maxValue,
     setMaxValue,
-    sortingState
+    sortingState,
   } = useAppContext();
 
   const containerRef = useRef<null | HTMLDivElement>(null);
@@ -162,7 +162,7 @@ export default function Bars({
           onClick={() => {
             startSort();
           }}
-          className="bg-slate-700 text-white px-4 py-2 rounded-md"
+          className="bg-gray-800 text-white px-4 py-2 rounded-md transition-transform transform hover:bg-gray-600 hover:-translate-y-0.5 hover:scale-105 active:scale-95 active:bg-gray-700 active:translate-y-0"
         >
           <Play />
         </button>
@@ -170,7 +170,7 @@ export default function Bars({
           onClick={() => {
             pauseSort();
           }}
-          className="bg-slate-700 text-white px-4 py-2 rounded-md"
+          className="bg-gray-800 text-white px-4 py-2 rounded-md transition-transform transform hover:bg-gray-600 hover:-translate-y-0.5 hover:scale-105 active:scale-95 active:bg-gray-700 active:translate-y-0"
         >
           <Pause />
         </button>
@@ -178,7 +178,7 @@ export default function Bars({
           onClick={() => {
             generateData(sortOrder);
           }}
-          className="bg-slate-700 text-white px-4 py-2 rounded-md"
+          className="bg-gray-800 text-white px-4 py-2 rounded-md transition-transform transform hover:bg-gray-600 hover:-translate-y-0.5 hover:scale-105 active:scale-95 active:bg-gray-700 active:translate-y-0"
         >
           Generate New Data
         </button>
@@ -247,7 +247,7 @@ export default function Bars({
             onChange={(e) => {
               setSortOrder(e.target.value);
             }}
-            className="border border-slate-500 p-2 rounded-md"
+            className="bg-white border border-gray-300 text-gray-700 py-2 px-4 pr-8 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ease-in-out duration-150"
           >
             <option value="random">Random</option>
             <option value="almostSortedAscending">

@@ -26,19 +26,14 @@ export default function QuickSort() {
     setPivotIndex(null);
   }, []);
 
-  const {
-    data,
-    setData,
-    sortGeneratorRef,
-    animationFrameId,
-    generateData,
-  } = useGenerateData({
-    numBars,
-    minValue,
-    maxValue,
-    updateIsSorting,
-    resetData: resetPointers,
-  });
+  const { data, setData, sortGeneratorRef, animationFrameId, generateData } =
+    useGenerateData({
+      numBars,
+      minValue,
+      maxValue,
+      updateIsSorting,
+      resetData: resetPointers,
+    });
 
   useEffect(() => {
     generateData(sortOrder);
@@ -146,7 +141,7 @@ export default function QuickSort() {
       setPivotIndex(pivot);
 
       animationFrameId.current = requestAnimationFrame(() => {
-        setTimeout(step, 250 / speed);
+        setTimeout(step, 500 / speed);
       });
     } else {
       updateIsSorting("idle");
