@@ -166,7 +166,7 @@ export default function SelectionSort() {
 
 const description = {
   description:
-    "Selection Sort is an in-place comparison sorting algorithm. It worksby repeatedly finding the minimum element from the unsorted portion of the list and swapping it with the first unsorted element. After each pass, the smallest element is selected and sorted. This process continues until the entire list is sorted. Like Bubble Sort, Selection Sort is easy to understand and implement, but it is inefficient on large lists due to its O(n²) time complexity.",
+    "Selection Sort is an in-place comparison sorting algorithm. It works by repeatedly finding the minimum element from the unsorted portion of the list and moving it to the end of the sorted portion of the list. This process continues until the entire list is sorted. Like Bubble Sort, Selection Sort is easy to understand and implement, but it is inefficient on large lists due to its O(n²) time complexity.",
   link: "https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/selection-sort.ts",
   timeComplexity:
     "Selection sort is O(n²) in all cases (best, average, and worst). The algorithm always has to make the same number of comparisons to find the minimum value in the unsorted partition, regardless of the input data.",
