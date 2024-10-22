@@ -5,13 +5,13 @@ export default function useGenerateData({
   numBars,
   minValue,
   maxValue,
-  isSorting,
+  updateIsSorting,
   resetData,
 }: {
   numBars: number;
   minValue: number;
   maxValue: number;
-  isSorting: React.MutableRefObject<"idle" | "playing" | "paused">;
+  updateIsSorting: (newState: "idle" | "playing" | "paused") => void;
   resetData: () => void;
 }) {
   const [data, setData] = useState<{ id: string; value: number }[]>([]);
@@ -24,7 +24,7 @@ export default function useGenerateData({
       resetData();
 
       // Common reset logic
-      isSorting.current = "idle";
+      updateIsSorting("idle");
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current);
       }
