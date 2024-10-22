@@ -45,25 +45,44 @@ export default function MergeSort() {
     function merge(
       left: { value: number; id: string }[],
       right: { value: number; id: string }[]
-    ): { value: number; id: string }[] {
+    ): {
+      mergedArray: { value: number; id: string }[];
+      leftIndices: number[];
+      rightIndices: number[];
+    } {
       const mergedArray: { value: number; id: string }[] = [];
+      const leftIndices: number[] = [];
+      const rightIndices: number[] = [];
       let leftPointer = 0;
       let rightPointer = 0;
 
       while (leftPointer < left.length && rightPointer < right.length) {
         if (left[leftPointer].value <= right[rightPointer].value) {
           mergedArray.push(left[leftPointer]);
+          leftIndices.push(mergedArray.length - 1);
           leftPointer++;
         } else {
           mergedArray.push(right[rightPointer]);
+          rightIndices.push(mergedArray.length - 1);
           rightPointer++;
         }
       }
 
-      mergedArray.push(...left.slice(leftPointer));
-      mergedArray.push(...right.slice(rightPointer));
+      // Handle remaining elements in left array
+      while (leftPointer < left.length) {
+        mergedArray.push(left[leftPointer]);
+        leftIndices.push(mergedArray.length - 1);
+        leftPointer++;
+      }
 
-      return mergedArray;
+      // Handle remaining elements in right array
+      while (rightPointer < right.length) {
+        mergedArray.push(right[rightPointer]);
+        rightIndices.push(mergedArray.length - 1);
+        rightPointer++;
+      }
+
+      return { mergedArray, leftIndices, rightIndices };
     }
 
     let subarraySize = 1;
@@ -86,18 +105,15 @@ export default function MergeSort() {
           ),
         };
 
-        const mergedArray = merge(leftSubarray, rightSubarray);
+        const { mergedArray, leftIndices, rightIndices } = merge(
+          leftSubarray,
+          rightSubarray
+        );
         array.splice(left, mergedArray.length, ...mergedArray);
         yield {
           array,
-          leftIndices: Array.from(
-            { length: leftSubarray.length },
-            (_, i) => left + i
-          ),
-          rightIndices: Array.from(
-            { length: rightSubarray.length },
-            (_, i) => right + i
-          ),
+          leftIndices: leftIndices.map((index) => left + index),
+          rightIndices: rightIndices.map((index) => left + index),
         };
         left += subarraySize * 2;
         right += subarraySize * 2;
