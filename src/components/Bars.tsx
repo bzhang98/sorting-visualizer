@@ -33,14 +33,14 @@ export default function Bars({
 
   const getFillColor = (index: number) => {
     if (!highlightedIndices) {
-      return "lightsteelblue";
+      return "steelblue";
     }
     for (const { indices, color } of highlightedIndices) {
       if (indices.includes(index)) {
         return color;
       }
     }
-    return "lightsteelblue"; // Default color if index is not highlighted
+    return "steelblue"; // Default color if index is not highlighted
   };
 
   const getLabels = (index: number) => {
