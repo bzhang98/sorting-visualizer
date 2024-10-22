@@ -6,7 +6,7 @@ import MergeSort from "./components/MergeSort";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import QuickSort from "./components/QuickSort";
 import useWindowWidth from "./hooks/use-window-width";
-import { OptionsProvider } from "./context/options-context";
+import { AppProvider } from "./context/app-context";
 import { NavLink } from "react-router-dom";
 
 export default function App() {
@@ -21,7 +21,7 @@ export default function App() {
   }
 
   return (
-    <OptionsProvider>
+    <AppProvider>
       <Router>
         <div className="app">
           <div className="max-w-full links flex gap-8 p-8 bg-white shadow-md justify-center">
@@ -114,6 +114,6 @@ export default function App() {
           </div>
         </div>
       </Router>
-    </OptionsProvider>
+    </AppProvider>
   );
 }
