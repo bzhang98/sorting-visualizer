@@ -149,6 +149,9 @@ export default function QuickSort() {
 
     if (isSorting.current === "paused") {
       isSorting.current = "playing";
+      if (!sortGeneratorRef.current) {
+        sortGeneratorRef.current = quickSortGenerator([...data]);
+      }
       step();
       return;
     }
@@ -190,7 +193,7 @@ export default function QuickSort() {
 
 const description = {
   description:
-    "Quick Sort is a divide-and-conquer comparison sorting algorithm. It sorts a list by selecting a 'pivot' element, partitioning the list into two halves—elements less than the pivot and elements greater than the pivot—and recursively sorting the sublists. We maintain two pointers, i and j, with i starting at the beginning of the list, and j initialized to start - 1. As we iterate through the elements, i scans through the list to find elements that are less than the pivot, while j keeps track of the last position where a smaller element was found. When i finds such an element, we increment j and swap the elements at i and j, ensuring that all elements to the left of j are less than or equal to the pivot. This process continues until i has traversed all elements. Once the iteration is complete, we place the pivot in its correct position by swapping it with the element at j + 1, thereby effectively partitioning the list into two halves: elements less than or equal to the pivot and elements greater than the pivot. The pivot selection strategy can affect the algorithm's performance. This visualization uses 'median-of-three' where the pivot is the median of the first, middle, and last elements.This reduces the likelihood of the worst-case time complexity as compared to other approaches, such as always setting the last element as the pivot.",
+    "Quick Sort is a divide-and-conquer comparison sorting algorithm. It sorts a list by selecting a 'pivot' element, partitioning the list into two halves—elements less than the pivot and elements greater than the pivot—and recursively sorting the sublists. We maintain two pointers, i and j, with i starting at the beginning of the list, and j initialized to start - 1. As we iterate through the elements, i scans through the list to find elements that are less than the pivot, while j keeps track of the last position where a smaller element was found. When i finds such an element, we increment j and swap the elements at i and j, ensuring that all elements to the left of j are less than or equal to the pivot. This process continues until i has traversed all elements. Once the iteration is complete, we place the pivot in its correct position by swapping it with the element at j + 1, thereby effectively partitioning the list into two halves: elements less than or equal to the pivot and elements greater than the pivot. The pivot selection strategy can affect the algorithm's performance. This visualization uses 'median-of-three' where the pivot is the median of the first, middle, and last elements. This reduces the likelihood of the worst-case time complexity as compared to other approaches, for example, always setting the last element as the pivot.",
   link: "https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/quick-sort.ts",
   timeComplexity:
     "In the average and best cases, when the pivot selection creates balanced partititions, Quick Sort has a time complexity of O(n log n). However, in the worst case, when the pivot selection consistently results in unbalanced halves, its time complexity is closer to O(n²).",

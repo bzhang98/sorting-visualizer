@@ -186,6 +186,9 @@ export default function InsertionSort() {
 
     if (isSorting.current === "paused") {
       isSorting.current = "playing";
+      if (!sortGeneratorRef.current) {
+        sortGeneratorRef.current = heapSortGenerator([...data]);
+      }
       step();
       return;
     }
@@ -222,12 +225,12 @@ export default function InsertionSort() {
 
 const description = {
   description:
-    "Heap Sort is a comparison-based sorting algorithm that uses a binary heap data structure. It sorts a list by first building a max heap from the data, then repeatedly removing the largest element from the heap and rebuilding it until the heap is empty. Heap Sort is efficient for larger datasets, as it has a consistent time complexity.",
+    "Heap Sort is a comparison-based sorting algorithm that uses a binary heap data structure. It sorts a list by first building a max heap from the data. A max heap has the property that each parent node is greater than or equal to both of its children. Also, a max heap will always have the largest element as the root of the heap. Therefore, we always have access to the biggest element in the list in O(1) time. We then repeatedly remove the largest element from the heap and subsequently restore the heap property until the heap is empty.",
   link: "https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/heap-sort.ts",
   timeComplexity:
-    "Heap Sort has an average, worst, and best-case time complexity of O(n log n), as building the heap takes O(n) time, and each removal operation takes O(log n) time over n elements.",
+    "Heap Sort has an average, worst, and best-case time complexity of O(n log n). Building the heap initially takes O(n) time. During the sorting phase, each removal operation followed by restoring the heap takes O(log n) time, and we must do this for n elements.",
   spaceComplexity:
-    "Heap Sort has a space complexity of O(1) if implemented iteratively, as it sorts the list in place without requiring additional memory for another data structure.",
+    "Heap Sort has a space complexity of O(1) if implemented iteratively, as it sorts the list in place without requiring additional memory for another data structure or recursive function calls.",
   stability:
-    "No. Heap Sort is not a stable sorting algorithm because the relative order of equal elements may not be preserved during the heap-building process.",
+    "No. Heap Sort is not a stable sorting algorithm, as it does not preserve the relative order of equal elements.",
 };

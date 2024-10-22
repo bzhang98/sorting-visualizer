@@ -93,6 +93,9 @@ export default function SelectionSort() {
 
     if (isSorting.current === "paused") {
       isSorting.current = "playing";
+      if (!sortGeneratorRef.current) {
+        sortGeneratorRef.current = insertionSortGenerator([...data]);
+      }
       step();
       return;
     }

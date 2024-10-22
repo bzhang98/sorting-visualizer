@@ -147,6 +147,9 @@ export default function MergeSort() {
 
     if (isSorting.current === "paused") {
       isSorting.current = "playing";
+      if (!sortGeneratorRef.current) {
+        sortGeneratorRef.current = mergeSortGenerator([...data]);
+      }
       step();
       return;
     }

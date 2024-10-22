@@ -81,6 +81,9 @@ export default function BubbleSort() {
 
     if (isSorting.current === "paused") {
       isSorting.current = "playing";
+      if(!sortGeneratorRef.current) {
+        sortGeneratorRef.current = bubbleSortGenerator([...data]);
+      }
       step();
       return;
     }
