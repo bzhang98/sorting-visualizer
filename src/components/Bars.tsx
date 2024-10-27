@@ -2,6 +2,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Pause, Play } from "lucide-react";
 import { useRef } from "react";
 import { useAppContext } from "../context/app-context";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export default function Bars({
   data,
@@ -95,7 +97,7 @@ export default function Bars({
             const textYPosition = `${100 - heightPercentage - 2}%`;
             const textColor = "black";
             const labels = getLabels(index);
-            const baseLineYStart = 110; // Base position for the first label line
+            const baseLineYStart = 110;
 
             return (
               <motion.svg
@@ -157,7 +159,7 @@ export default function Bars({
           })}
         </AnimatePresence>
       </div>
-      <div className="controls flex gap-8 mb-8">
+      <div className="controls flex items-center gap-8 mb-8">
         <button
           onClick={() => {
             startSort();
@@ -182,6 +184,10 @@ export default function Bars({
         >
           Generate New Data
         </button>
+        <div className="flex items-center space-x-2">
+          <Switch id="manual-mode" onCheckedChange={e => console.log(e)}/>
+          <Label htmlFor="manual-mode">Manual Mode</Label>
+        </div>
       </div>
       <div className="options">
         <div>

@@ -9,14 +9,10 @@
     }
   ],
   "compilerOptions": {
-    "target": "ES5",
-    "module": "CommonJS",
-    "outDir": "out",
-    "sourceMap": true,
-    "baseUrl": "src",
+    "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./*"
+        "./src/*"
       ]
     }
   }
