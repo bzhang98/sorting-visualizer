@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
-import Bars from "./Bars";
-import Description from "./Description";
+import Bars from "@/components/Bars";
+import Description from "@/components/Description";
 import { useAppContext } from "../context/app-context";
 import useGenerateData from "../hooks/use-generate-data";
 
@@ -31,7 +31,6 @@ export default function BubbleSort() {
 
   useEffect(() => {
     generateData(sortOrder);
-    updateIsSorting("idle");
   }, []);
 
   type BubbleSortYield = {

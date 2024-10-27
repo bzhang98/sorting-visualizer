@@ -1,6 +1,6 @@
-import Bars from "./Bars";
+import Bars from "@/components/Bars";
 import { useState, useCallback, useEffect } from "react";
-import Description from "./Description";
+import Description from "@/components/Description";
 import useGenerateData from "../hooks/use-generate-data";
 import { useAppContext } from "../context/app-context";
 
@@ -34,7 +34,6 @@ export default function InsertionSort() {
 
   useEffect(() => {
     generateData(sortOrder);
-    updateIsSorting("idle");
   }, []);
 
   type HeapSortYield = {

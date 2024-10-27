@@ -1,6 +1,6 @@
-import Bars from "./Bars";
+import Bars from "@/components/Bars";
 import { useState, useCallback, useEffect } from "react";
-import Description from "./Description";
+import Description from "@/components/Description";
 import { useAppContext } from "../context/app-context";
 import useGenerateData from "../hooks/use-generate-data";
 
@@ -29,23 +29,17 @@ export default function SelectionSort() {
     setLastUnsortedIndex(null);
   }, []);
 
-  const {
-    data,
-    setData,
-    sortGeneratorRef,
-    animationFrameId,
-    generateData,
-  } = useGenerateData({
-    numBars,
-    minValue,
-    maxValue,
-    updateIsSorting,
-    resetData: resetPointers,
-  });
+  const { data, setData, sortGeneratorRef, animationFrameId, generateData } =
+    useGenerateData({
+      numBars,
+      minValue,
+      maxValue,
+      updateIsSorting,
+      resetData: resetPointers,
+    });
 
   useEffect(() => {
     generateData(sortOrder);
-    updateIsSorting("idle");
   }, []);
 
   type SelectionSortYield = {

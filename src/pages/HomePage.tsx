@@ -1,5 +1,5 @@
 import { ArrowRight, BarChart2, Clock, Code, ArrowUpRight } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Link } from "react-router-dom";
 
 const HomePage = () => {
