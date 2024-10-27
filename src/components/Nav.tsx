@@ -13,10 +13,13 @@ const Header = () => {
 
   return (
     <div className="border-b bg-white shadow-sm">
-      <div className="px-4 flex justify-center items-center gap-6" style={{
-        margin: "0 auto",
-        width: "clamp(700px, 100%, 1000px)",
-      }}>
+      <div
+        className="px-4 flex justify-center items-center gap-6"
+        style={{
+          margin: "0 auto",
+          width: "clamp(700px, 100%, 1000px)",
+        }}
+      >
         <NavLink
           to="/"
           className={({ isActive }) =>
@@ -32,6 +35,7 @@ const Header = () => {
         <div className="flex items-center gap-8 overflow-x-auto py-4">
           {algorithms.map((algo) => (
             <NavLink
+              key={algo}
               to={`/${algo.toLowerCase().replace(" ", "-")}`}
               className={({ isActive }) =>
                 `text-gray-700 hover:text-blue-700 font-medium px-4 py-2 rounded-md hover:bg-blue-50 transition-colors duration-200 relative group ${
