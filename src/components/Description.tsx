@@ -16,7 +16,7 @@ export default function Description({ description }: DescriptionProps) {
     <div
       className="max-w-6xl mx-auto px-4 space-y-6"
       style={{
-        margin: "0 auto",
+        margin: "2rem auto",
         width: "clamp(700px, 100%, 1000px)",
       }}
     >
