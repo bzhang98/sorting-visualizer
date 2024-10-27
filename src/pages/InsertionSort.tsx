@@ -3,6 +3,8 @@ import { useState, useCallback, useEffect } from "react";
 import Description from "@/components/Description";
 import useGenerateData from "../hooks/use-generate-data";
 import { useAppContext } from "../context/app-context";
+import Controls from "@/components/Controls";
+import Options from "@/components/Options";
 
 export default function SelectionSort() {
   const {
@@ -134,10 +136,13 @@ export default function SelectionSort() {
             color: "lightcoral",
           },
         ]}
+      />
+      <Controls
         generateData={generateData}
         startSort={startSorting}
         pauseSort={pauseSorting}
       />
+      <Options />
       <Description description={description} />
     </>
   );

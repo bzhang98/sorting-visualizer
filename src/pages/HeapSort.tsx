@@ -3,6 +3,8 @@ import { useState, useCallback, useEffect } from "react";
 import Description from "@/components/Description";
 import useGenerateData from "../hooks/use-generate-data";
 import { useAppContext } from "../context/app-context";
+import Controls from "@/components/Controls";
+import Options from "@/components/Options";
 
 export default function InsertionSort() {
   const {
@@ -221,10 +223,13 @@ export default function InsertionSort() {
           { color: "lightcoral", indices: comparedIndices },
           { color: "limegreen", indices: sortedPartition },
         ]}
+      />
+      <Controls
         generateData={generateData}
         startSort={startSorting}
         pauseSort={pauseSorting}
       />
+      <Options />
       <Description description={description} />
     </>
   );

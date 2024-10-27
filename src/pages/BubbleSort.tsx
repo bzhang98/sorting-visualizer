@@ -3,6 +3,8 @@ import Bars from "@/components/Bars";
 import Description from "@/components/Description";
 import { useAppContext } from "../context/app-context";
 import useGenerateData from "../hooks/use-generate-data";
+import Controls from "@/components/Controls";
+import Options from "@/components/Options";
 
 export default function BubbleSort() {
   const {
@@ -113,10 +115,13 @@ export default function BubbleSort() {
       <Bars
         data={data}
         highlightedIndices={[{ indices: comparedIndices, color: "lightcoral" }]}
+      />
+      <Controls
         generateData={generateData}
         startSort={startSorting}
         pauseSort={pauseSorting}
       />
+      <Options />
       <Description description={description} />
     </>
   );

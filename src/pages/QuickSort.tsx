@@ -3,6 +3,8 @@ import { useState, useCallback, useEffect } from "react";
 import Description from "@/components/Description";
 import { useAppContext } from "../context/app-context";
 import useGenerateData from "../hooks/use-generate-data";
+import Controls from "@/components/Controls";
+import Options from "@/components/Options";
 
 export default function QuickSort() {
   const {
@@ -188,10 +190,13 @@ export default function QuickSort() {
           })),
           { indices: [startIndex as number], color: "blue", label: "Start" },
         ]}
+      />
+      <Controls
         generateData={generateData}
         startSort={startSorting}
         pauseSort={pauseSorting}
       />
+      <Options />
       <Description description={description} />
     </>
   );
