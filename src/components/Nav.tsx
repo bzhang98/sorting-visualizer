@@ -14,7 +14,7 @@ const Header = () => {
   return (
     <div className="border-b bg-white shadow-sm">
       <div
-        className="px-4 flex justify-center items-center gap-6"
+        className="px-4 flex justify-between items-center"
         style={{
           margin: "0 auto",
           width: "clamp(700px, 100%, 1000px)",
