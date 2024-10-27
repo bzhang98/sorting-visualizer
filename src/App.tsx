@@ -1,11 +1,11 @@
-import BubbleSort from "./components/BubbleSort";
-import SelectionSort from "./components/SelectionSort";
-import InsertionSort from "./components/InsertionSort";
-import HeapSort from "./components/HeapSort";
-import MergeSort from "./components/MergeSort";
-import HomePage from "./components/HomePage";
+import BubbleSort from "./pages/BubbleSort";
+import SelectionSort from "./pages/SelectionSort";
+import InsertionSort from "./pages/InsertionSort";
+import HeapSort from "./pages/HeapSort";
+import MergeSort from "./pages/MergeSort";
+import HomePage from "./pages/HomePage";
+import QuickSort from "./pages/QuickSort";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import QuickSort from "./components/QuickSort";
 import useWindowWidth from "./hooks/use-window-width";
 import { AppProvider } from "./context/app-context";
 import Nav from "./components/Nav";
