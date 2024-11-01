@@ -37,7 +37,7 @@ export default function Description({ description }: DescriptionProps) {
               TS
             </div>
             <span className="text-gray-700 flex items-center gap-2">
-              See the implementation in TypeScript
+              See the implementation here
               <ExternalLink className="w-4 h-4 text-blue-600" />
             </span>
           </CardContent>

@@ -1,175 +1,186 @@
 import Bars from "@/components/Bars";
-import { useState, useCallback, useEffect } from "react";
 import Description from "@/components/Description";
-import { useAppContext } from "../context/app-context";
-import useGenerateData from "../hooks/use-generate-data";
-import Controls from "@/components/Controls";
+import ManualControls from "@/components/ManualControls";
 import Options from "@/components/Options";
+import useGenerateData from "@/hooks/use-generate-data";
+import { useEffect } from "react";
+import { useAppContext } from "../context/app-context";
+import Step from "@/types/Step";
+import DataElement from "@/types/DataElement";
+import AutoControls from "@/components/AutoControls";
 
 export default function SelectionSort() {
-  const {
-    numBars,
-    maxValue,
-    minValue,
-    speed,
-    sortOrder,
-    isSorting,
-    updateIsSorting,
-  } = useAppContext();
-
-  const [currentMinIndex, setCurrentMinIndex] = useState<number | null>(null);
-  const [currentInspectedIndex, setCurrentInspectedIndex] = useState<
-    number | null
-  >(null);
-  const [lastUnsortedIndex, setLastUnsortedIndex] = useState<number | null>(
-    null
-  );
-
-  const resetPointers = useCallback(() => {
-    setCurrentInspectedIndex(null);
-    setCurrentMinIndex(null);
-    setLastUnsortedIndex(null);
-  }, []);
-
-  const { data, setData, sortGeneratorRef, animationFrameId, generateData } =
-    useGenerateData({
-      numBars,
-      minValue,
-      maxValue,
-      updateIsSorting,
-      resetData: resetPointers,
-    });
+  const { steps, mode, currentStep, nextStep, previousStep } = useAppContext();
+  const { generateData } = useGenerateData({
+    generateSteps,
+  });
 
   useEffect(() => {
-    generateData(sortOrder);
+    generateData();
   }, []);
 
-  type SelectionSortYield = {
-    array: { id: string; value: number }[];
-    currentMinIndex: number | null;
-    currentInspectedIndex: number | null;
-    lastUnsortedIndex: number;
-  };
+  function generateSteps(data: DataElement[]) {
+    const array = [...data];
+    const steps: Step[] = [
+      { currentState: [...array], highlightedIndices: [], action: "start" },
+    ];
 
-  function* selectionSortGenerator(
-    array: { id: string; value: number }[]
-  ): Generator<SelectionSortYield> {
     for (let i = 0; i < array.length; i++) {
       let currentMinIndex = i;
+      const sortedRange = [0, i - 1];
 
       for (let j = i + 1; j < array.length; j++) {
-        yield {
-          array,
-          currentMinIndex,
-          currentInspectedIndex: j,
-          lastUnsortedIndex: i,
-        };
+        steps.push({
+          currentState: [...array],
+          highlightedIndices: [
+            {
+              indices: [currentMinIndex],
+              color: "green",
+              label: "Min",
+            },
+            {
+              indices: [j],
+              color: "red",
+            },
+          ],
+          highlightedRange:
+            sortedRange[0] <= sortedRange[1]
+              ? [
+                  {
+                    range: sortedRange as [number, number],
+                    color: "green",
+                    label: "Sorted",
+                  },
+                ]
+              : undefined,
+          action: "compare",
+        });
+
         if (array[j].value < array[currentMinIndex].value) {
           currentMinIndex = j;
+          steps.push({
+            currentState: [...array],
+            highlightedIndices: [
+              {
+                indices: [currentMinIndex],
+                color: "green",
+                label: "Min",
+              },
+            ],
+            highlightedRange:
+              sortedRange[0] <= sortedRange[1]
+                ? [
+                    {
+                      range: sortedRange as [number, number],
+                      color: "green",
+                      label: "Sorted",
+                    },
+                  ]
+                : undefined,
+            action: "compare",
+          });
         }
       }
       if (currentMinIndex !== i) {
-        yield {
-          array,
-          currentMinIndex,
-          currentInspectedIndex: null,
-          lastUnsortedIndex: i,
-        };
+        steps.push({
+          currentState: [...array],
+          highlightedIndices: [
+            {
+              indices: [currentMinIndex],
+              color: "green",
+              label: "Min",
+            },
+            {
+              indices: [i],
+              color: "red",
+            },
+          ],
+          highlightedRange:
+            sortedRange[0] <= sortedRange[1]
+              ? [
+                  {
+                    range: sortedRange as [number, number],
+                    color: "green",
+                    label: "Sorted",
+                  },
+                ]
+              : undefined,
+          action: "compare",
+        });
         [array[currentMinIndex], array[i]] = [array[i], array[currentMinIndex]];
-        yield {
-          array,
-          currentMinIndex: i,
-          currentInspectedIndex: null,
-          lastUnsortedIndex: currentMinIndex,
-        };
+        steps.push({
+          currentState: [...array],
+          highlightedIndices: [
+            {
+              indices: [i],
+              color: "green",
+              label: "Min",
+            },
+          ],
+          highlightedRange:
+            sortedRange[0] <= sortedRange[1]
+              ? [
+                  {
+                    range: sortedRange as [number, number],
+                    color: "green",
+                    label: "Sorted",
+                  },
+                ]
+              : undefined,
+          action: "swap",
+        });
+      } else {
+        steps.push({
+          currentState: [...array],
+          highlightedIndices: [
+            {
+              indices: [currentMinIndex],
+              color: "green",
+              label: "Min",
+            },
+          ],
+          highlightedRange:
+            sortedRange[0] <= sortedRange[1]
+              ? [
+                  {
+                    range: sortedRange as [number, number],
+                    color: "green",
+                    label: "Sorted",
+                  },
+                ]
+              : undefined,
+          action: "compare",
+        });
       }
-
-      yield {
-        array,
-        currentMinIndex: i,
-        currentInspectedIndex: null,
-        lastUnsortedIndex: currentMinIndex,
-      };
     }
+    steps.push({
+      currentState: [...array],
+      highlightedRange: [
+        {
+          range: [0, array.length - 1],
+          color: "green",
+          label: "Sorted",
+        },
+      ],
+      action: "done",
+    });
+    return steps;
   }
-
-  const step = useCallback(() => {
-    if (!sortGeneratorRef.current || isSorting.current !== "playing") return;
-
-    const next =
-      sortGeneratorRef.current.next() as IteratorResult<SelectionSortYield>;
-    if (!next.done) {
-      const {
-        array,
-        currentMinIndex,
-        currentInspectedIndex,
-        lastUnsortedIndex,
-      } = next.value;
-      setData(array);
-      setCurrentMinIndex(currentMinIndex);
-      setCurrentInspectedIndex(currentInspectedIndex);
-      setLastUnsortedIndex(lastUnsortedIndex);
-
-      animationFrameId.current = requestAnimationFrame(() => {
-        setTimeout(step, 250 / speed);
-      });
-    } else {
-      updateIsSorting("idle");
-      resetPointers();
-    }
-  }, [speed, isSorting]);
-
-  const startSorting = useCallback(() => {
-    if (isSorting.current === "playing") return;
-
-    if (isSorting.current === "paused") {
-      updateIsSorting("playing");
-      if (!sortGeneratorRef.current) {
-        sortGeneratorRef.current = selectionSortGenerator([...data]);
-      }
-      step();
-      return;
-    }
-
-    updateIsSorting("playing");
-    sortGeneratorRef.current = selectionSortGenerator([...data]);
-    step();
-  }, [isSorting, data, step]);
-
-  const pauseSorting = useCallback(() => {
-    updateIsSorting("paused");
-    if (animationFrameId.current) {
-      cancelAnimationFrame(animationFrameId.current);
-    }
-  }, [isSorting]);
 
   return (
     <>
       <h1 className="text-4xl text-center font-bold mt-8">Selection Sort</h1>
-      <Bars
-        data={data}
-        highlightedIndices={[
-          {
-            indices: [currentInspectedIndex as number],
-            color: "lightcoral",
-          },
-          {
-            indices: [currentMinIndex as number],
-            color: "goldenrod",
-            label: "Min",
-          },
-          {
-            indices: [lastUnsortedIndex as number],
-            color: "lightgreen",
-            label: "Next to Swap",
-          },
-        ]}
-      />
-      <Controls
-        generateData={generateData}
-        startSort={startSorting}
-        pauseSort={pauseSorting}
-      />
+      {steps.length && <Bars currentStep={steps[currentStep]} />}
+
+      {mode === "manual" ? (
+        <ManualControls
+          generateData={generateData}
+          nextStep={nextStep}
+          prevStep={previousStep}
+        />
+      ) : (
+        <AutoControls generateData={generateData} />
+      )}
       <Options />
       <Description description={description} />
     </>

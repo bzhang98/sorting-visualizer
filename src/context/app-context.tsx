@@ -1,8 +1,17 @@
-import { createContext, ReactNode, useContext, useRef, useState } from "react";
+import DataElement from "@/types/DataElement";
+import Step from "@/types/Step";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 type SortingState = "idle" | "playing" | "paused";
 
 interface AppContextType {
+  totalReset: () => void;
   numBars: number;
   setNumBars: React.Dispatch<React.SetStateAction<number>>;
   sortOrder: string;
@@ -13,9 +22,17 @@ interface AppContextType {
   setMinValue: React.Dispatch<React.SetStateAction<number>>;
   maxValue: number;
   setMaxValue: React.Dispatch<React.SetStateAction<number>>;
-  isSorting: React.MutableRefObject<SortingState>;
-  updateIsSorting: (newState: SortingState) => void;
   sortingState: SortingState;
+  setSortingState: React.Dispatch<React.SetStateAction<SortingState>>;
+  mode: "auto" | "manual";
+  setMode: React.Dispatch<React.SetStateAction<"auto" | "manual">>;
+  data: DataElement[];
+  setData: React.Dispatch<React.SetStateAction<DataElement[]>>;
+  steps: Step[];
+  setSteps: React.Dispatch<React.SetStateAction<Step[]>>;
+  currentStep: number;
+  nextStep: () => void;
+  previousStep: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -35,17 +52,59 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [minValue, setMinValue] = useState(1);
   const [maxValue, setMaxValue] = useState(100);
 
-  const isSorting = useRef<SortingState>("idle");
   const [sortingState, setSortingState] = useState<SortingState>("idle");
 
-  const updateIsSorting = (newState: SortingState) => {
-    isSorting.current = newState;
-    setSortingState(newState); // Trigger a re-render whenever isSorting is updated
+  const [mode, setMode] = useState<"auto" | "manual">("auto");
+
+  const [data, setData] = useState<DataElement[]>([]);
+  const [steps, setSteps] = useState<Step[]>([]);
+  const [currentStep, setCurrentStep] = useState(0);
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
+    if (mode === "auto" && sortingState === "playing") {
+      intervalId = setInterval(() => {
+        nextStep();
+      }, 250 / speed);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [mode, sortingState, speed]);
+
+  const nextStep = () => {
+    setCurrentStep((prev) => {
+      if (prev < steps.length - 1) {
+        return prev + 1;
+      }
+      setSortingState("idle");
+      return prev;
+    });
+  };
+
+  const previousStep = () => {
+    setCurrentStep((prev) => {
+      if (prev > 0) {
+        return prev - 1;
+      }
+      setSortingState("idle");
+      return prev;
+    });
+  };
+
+  const totalReset = () => {
+    setSortingState("idle");
+    setCurrentStep(0);
   };
 
   return (
     <AppContext.Provider
       value={{
+        totalReset,
         numBars,
         setNumBars,
         sortOrder,
@@ -56,9 +115,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setMinValue,
         maxValue,
         setMaxValue,
-        isSorting,
-        updateIsSorting,
         sortingState,
+        setSortingState,
+        mode,
+        setMode,
+        data,
+        setData,
+        steps,
+        setSteps,
+        currentStep,
+        nextStep,
+        previousStep,
       }}
     >
       {children}

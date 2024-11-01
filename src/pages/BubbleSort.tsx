@@ -1,126 +1,101 @@
-import { useState, useCallback, useEffect } from "react";
 import Bars from "@/components/Bars";
 import Description from "@/components/Description";
-import { useAppContext } from "../context/app-context";
-import useGenerateData from "../hooks/use-generate-data";
-import Controls from "@/components/Controls";
+import ManualControls from "@/components/ManualControls";
 import Options from "@/components/Options";
+import useGenerateData from "@/hooks/use-generate-data";
+import { useEffect } from "react";
+import { useAppContext } from "../context/app-context";
+import Step from "@/types/Step";
+import DataElement from "@/types/DataElement";
+import AutoControls from "@/components/AutoControls";
 
 export default function BubbleSort() {
-  const {
-    numBars,
-    maxValue,
-    minValue,
-    speed,
-    sortOrder,
-    isSorting,
-    updateIsSorting,
-  } = useAppContext();
-  const [comparedIndices, setComparedIndices] = useState<number[]>([]);
-
-  const resetPointers = useCallback(() => {
-    setComparedIndices([]);
-  }, []);
-
-  const { data, setData, sortGeneratorRef, animationFrameId, generateData } =
-    useGenerateData({
-      numBars,
-      minValue,
-      maxValue,
-      updateIsSorting,
-      resetData: resetPointers,
-    });
+  const { steps, mode, currentStep, nextStep, previousStep } = useAppContext();
+  const { generateData } = useGenerateData({
+    generateSteps,
+  });
 
   useEffect(() => {
-    generateData(sortOrder);
+    generateData();
   }, []);
 
-  type BubbleSortYield = {
-    array: { id: string; value: number }[];
-    indices: number[];
-  };
+  function generateSteps(data: DataElement[]) {
+    const array = [...data];
+    const steps: Step[] = [
+      { currentState: [...array], highlightedIndices: [], action: "start" },
+    ];
 
-  function* bubbleSortGenerator(
-    array: { id: string; value: number }[]
-  ): Generator<BubbleSortYield> {
     for (let i = 0; i < array.length - 1; i++) {
       for (let j = 0; j < array.length - i - 1; j++) {
-        yield {
-          array,
-          indices: [j, j + 1],
-        };
+        const sortedRange = [array.length - i, array.length - 1] as [
+          number,
+          number
+        ];
+        steps.push({
+          currentState: [...array],
 
+          highlightedIndices: [{ indices: [j, j + 1], color: "red" }],
+          highlightedRange:
+            sortedRange[0] <= sortedRange[1]
+              ? [
+                  {
+                    range: sortedRange,
+                    color: "green",
+                    label: "Sorted",
+                  },
+                ]
+              : undefined,
+          action: "compare",
+        });
         if (array[j].value > array[j + 1].value) {
           [array[j], array[j + 1]] = [array[j + 1], array[j]];
-          yield {
-            array,
-            indices: [j, j + 1],
-          };
+          steps.push({
+            currentState: [...array],
+
+            highlightedIndices: [{ indices: [j, j + 1], color: "red" }],
+            highlightedRange:
+              sortedRange[0] <= sortedRange[1]
+                ? [
+                    {
+                      range: sortedRange,
+                      color: "green",
+                      label: "Sorted",
+                    },
+                  ]
+                : undefined,
+            action: "swap",
+          });
         }
-
-        yield {
-          array,
-          indices: [j, j + 1],
-        };
       }
     }
+    steps.push({
+      currentState: [...array],
+      highlightedRange: [
+        {
+          range: [0, array.length - 1],
+          color: "green",
+          label: "Sorted",
+        },
+      ],
+      action: "done",
+    });
+    return steps;
   }
-
-  const step = useCallback(() => {
-    if (!sortGeneratorRef.current || isSorting.current !== "playing") return;
-
-    const next =
-      sortGeneratorRef.current.next() as IteratorResult<BubbleSortYield>;
-    if (!next.done) {
-      const { array, indices } = next.value;
-      setData(array);
-      setComparedIndices(indices);
-
-      animationFrameId.current = requestAnimationFrame(() => {
-        setTimeout(step, 250 / speed);
-      });
-    } else {
-      updateIsSorting("idle");
-      resetPointers();
-    }
-  }, [speed, isSorting]);
-
-  const startSorting = useCallback(() => {
-    if (isSorting.current === "playing") return;
-
-    if (isSorting.current === "paused") {
-      updateIsSorting("playing");
-      if (!sortGeneratorRef.current) {
-        sortGeneratorRef.current = bubbleSortGenerator([...data]);
-      }
-      step();
-      return;
-    }
-
-    updateIsSorting("playing");
-    sortGeneratorRef.current = bubbleSortGenerator([...data]);
-    step();
-  }, [isSorting, data, step]);
-
-  const pauseSorting = useCallback(() => {
-    updateIsSorting("paused");
-    if (animationFrameId.current) {
-      cancelAnimationFrame(animationFrameId.current);
-    }
-  }, [isSorting]);
 
   return (
     <>
       <h1 className="text-4xl text-center font-bold mt-8">Bubble Sort</h1>
-      <Bars
-        data={data}
-        highlightedIndices={[{ indices: comparedIndices, color: "lightcoral" }]}
-      />
-      <Controls
-        generateData={generateData}
-        startSort={startSorting}
-        pauseSort={pauseSorting}
-      />
+      {steps.length > 0 && <Bars currentStep={steps[currentStep]} />}
+
+      {mode === "manual" ? (
+        <ManualControls
+          generateData={generateData}
+          nextStep={nextStep}
+          prevStep={previousStep}
+        />
+      ) : (
+        <AutoControls generateData={generateData} />
+      )}
       <Options />
       <Description description={description} />
     </>
@@ -129,10 +104,10 @@ export default function BubbleSort() {
 
 const description = {
   description:
-    "Bubble Sort is an in-place comparison sorting algorithm. It works by repeatedly comparing adjacent elements and swaps them if they are out of order. This process continues until the list is sorted, with each pass moving the next largest element to its correct position. Hence the largest element 'bubbles' up to the top. While easy to understand and implement, Bubble Sort is inefficient for large datasets due to the O(n²) time complexity.",
+    "Bubble Sort is an in-place comparison sorting algorithm. It works by repeatedly comparing adjacent elements and swaps them if they are out of order. This process continues until the list is sorted, with each pass moving the next largest element to its correct position. Hence, the largest element 'bubbles' up to the top. While easy to understand and implement, Bubble Sort is inefficient for large datasets due to the O(n²) time complexity.",
   link: "https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/bubble-sort.ts",
   timeComplexity:
-    "In the average and worst cases, Bubble Sort is O(n²). In the best case, Bubble Sort can be O(n) - this is possible with an optimization that stops the algorithm if no swaps are made in any given pass, i.e. the list is already sorted.",
+    "In the average and worst cases, Bubble Sort is O(n²). In the best case, Bubble Sort can be O(n) - this is possible with an optimization that stops the algorithm if no swaps are made in any given pass (when the list is already sorted).",
   spaceComplexity:
     "Because Bubble Sort is implemented iteratively and does not require any additional memory, it has a O(1) space complexity.",
   stability:

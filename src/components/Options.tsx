@@ -1,6 +1,8 @@
 import { useAppContext } from "@/context/app-context";
-import { Label } from "@radix-ui/react-label";
-import { Switch } from "@radix-ui/react-switch";
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
+import { Slider } from "./ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
 
 export default function Options() {
   const {
@@ -15,114 +17,130 @@ export default function Options() {
     speed,
     setSpeed,
     sortingState,
+    mode,
+    setMode,
   } = useAppContext();
 
   return (
     <div
-      className="options px-4"
+      className="options px-4 flex flex-col gap-4"
       style={{
         width: "clamp(700px, 100%, 1000px)",
-        margin: "0 auto",
+        margin: "1rem auto",
       }}
     >
-      <Switch />
-      <div className="flex items-center mt-4">
-        <Switch id="airplane-mode" />
-        <Label htmlFor="airplane-mode">Manual Mode</Label>
+      <div className="flex gap-2 items-center">
+        <Switch
+          defaultChecked={mode === "manual"}
+          onCheckedChange={(e) => {
+            if (e) {
+              setMode("manual");
+              setSpeed(1);
+            } else {
+              setMode("auto");
+            }
+          }}
+        />
+        <Label>Manual Mode</Label>
       </div>
       <div>
-        <label htmlFor="speed" className="block mt-4">
+        <Label htmlFor="speed" className="block">
           Speed: {speed}x
-        </label>
-        <input
-          type="range"
-          id="speed"
-          min="0.25"
-          max="10"
+        </Label>
+        <Slider
+          value={[speed]}
+          onValueChange={(value) => setSpeed(value[0])}
+          min={0.25}
+          max={10}
           step={0.05}
-          value={speed}
-          onChange={(e) => {
-            setSpeed(Number(e.target.value));
-          }}
-          className="w-[300px]"
-          disabled={sortingState === "playing"}
+          className={`w-[300px] my-4 ${
+            sortingState === "playing" || mode === "manual"
+              ? "opacity-50 cursor-not-allowed"
+              : "cursor-grab"
+          }`}
+          disabled={sortingState === "playing" || mode === "manual"}
         />
       </div>
       <div>
-        <label htmlFor="numBars" className="block mt-4">
+        <Label htmlFor="numBars" className="block">
           Number of Elements: {numBars}
-        </label>
-        <input
-          type="range"
-          id="numBars"
-          min={5}
-          max={50}
-          step={1}
-          value={numBars}
-          onChange={(e) => {
-            setNumBars(Number(e.target.value));
-          }}
-          className="w-[300px]"
-        />
+        </Label>
+        <div>
+          <Slider
+            value={[numBars]}
+            onValueChange={(value) => setNumBars(value[0])}
+            min={5}
+            max={50}
+            step={1}
+            className="w-[300px] my-2 cursor-grab"
+          />
+        </div>
       </div>
       <div>
-        <label htmlFor="maxValue" className="block mt-4">
+        <Label htmlFor="maxValue" className="block">
           Maximum Value: {maxValue}
-        </label>
-        <input
-          type="range"
-          id="maxValue"
-          min={minValue}
-          max={100}
-          step={1}
-          value={maxValue}
-          onChange={(e) => {
-            setMaxValue(Number(e.target.value));
+        </Label>
+        <Slider
+          value={[maxValue]}
+          onValueChange={(value) => {
+            const newValue = value[0];
+            // Ensure maxValue does not go below minValue
+            if (newValue >= minValue) {
+              setMaxValue(newValue);
+            }
           }}
-          className="w-[300px]"
-        />
-      </div>
-      <div>
-        <label htmlFor="minValue" className="block mt-4">
-          Minimum Value: {minValue}
-        </label>
-        <input
-          type="range"
-          id="minValue"
           min={1}
           max={100}
           step={1}
-          value={minValue}
-          onChange={(e) => {
-            setMinValue(Number(e.target.value));
-            setMaxValue(Math.max(Number(e.target.value), maxValue));
-          }}
-          className="w-[300px]"
+          className="w-[300px] my-4 cursor-grab"
         />
       </div>
       <div>
-        <label htmlFor="sortOrder" className="block mt-4">
-          Sort Order
-        </label>
-        <select
-          name="sortOrder"
-          id="sortOrder"
-          value={sortOrder}
-          onChange={(e) => {
-            setSortOrder(e.target.value);
+        <Label htmlFor="minValue" className="block">
+          Minimum Value: {minValue}
+        </Label>
+        <Slider
+          value={[minValue]}
+          onValueChange={(value) => {
+            const newValue = value[0];
+            // Ensure minValue does not go above maxValue
+            if (newValue <= maxValue) {
+              setMinValue(newValue);
+            }
           }}
-          className="bg-white border border-gray-300 text-gray-700 py-2 px-4 pr-8 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ease-in-out duration-150"
+          min={1}
+          max={100}
+          step={1}
+          className="w-[300px] my-4 cursor-grab"
+        />
+      </div>
+      <div>
+        <Label htmlFor="sortOrder" className="block mb-2">
+          Sort Order
+        </Label>
+        <Select
+          value={sortOrder}
+          onValueChange={(value) => {
+            setSortOrder(value);
+          }}
         >
-          <option value="random">Random</option>
-          <option value="almostSortedAscending">
-            Almost Sorted (Ascending)
-          </option>
-          <option value="almostSortedDescending">
-            Almost Sorted (Descending)
-          </option>
-          <option value="sortedAscending">Sorted (Ascending)</option>
-          <option value="sortedDescending">Sorted (Descending)</option>
-        </select>
+          <SelectTrigger id="sortOrder" className="w-[300px]">
+            {sortOrder}
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="random">Random</SelectItem>
+            <SelectItem value="almostSortedAscending">
+              Almost Sorted (Ascending)
+            </SelectItem>
+            <SelectItem value="almostSortedDescending">
+              Almost Sorted (Descending)
+            </SelectItem>
+            <SelectItem value="sortedAscending">Sorted (Ascending)</SelectItem>
+            <SelectItem value="sortedDescending">
+              Sorted (Descending)
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

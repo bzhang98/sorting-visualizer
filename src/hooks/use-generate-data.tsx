@@ -1,67 +1,80 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
+import DataElement from "@/types/DataElement";
+import { useAppContext } from "@/context/app-context";
 
 export default function useGenerateData({
-  numBars,
-  minValue,
-  maxValue,
-  updateIsSorting,
-  resetData,
+  generateSteps,
 }: {
-  numBars: number;
-  minValue: number;
-  maxValue: number;
-  updateIsSorting: (newState: "idle" | "playing" | "paused") => void;
-  resetData: () => void;
+  generateSteps: (array: DataElement[]) => any;
 }) {
-  const [data, setData] = useState<{ id: string; value: number }[]>([]);
-  const sortGeneratorRef = useRef<Generator | null>(null);
-  const animationFrameId = useRef<number | null>(null);
+  const {
+    totalReset,
+    setData,
+    setSteps,
+    numBars,
+    minValue,
+    maxValue,
+    sortOrder,
+    setSortingState,
+  } = useAppContext();
 
-  const generateData = useCallback(
-    (sortOrder: string) => {
-      // Component-specific reset logic
-      resetData();
+  const generateData = useCallback(() => {
+    // Common reset logic
+    setSortingState("idle");
+    totalReset();
+    console.log(sortOrder);
 
-      // Common reset logic
-      updateIsSorting("idle");
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current);
+    switch (sortOrder) {
+      case "random": {
+        const data = generateRandomData(numBars, minValue, maxValue);
+        setData(data);
+        setSteps(generateSteps(data));
+        break;
       }
-      switch (sortOrder) {
-        case "random":
-          setData(generateRandomData(numBars, minValue, maxValue));
-          break;
-        case "almostSortedAscending":
-          setData(
-            generateAlmostSortedAscendingData(numBars, minValue, maxValue)
-          );
-          break;
-        case "almostSortedDescending":
-          setData(
-            generateAlmostSortedDescendingData(numBars, minValue, maxValue)
-          );
-          break;
-        case "sortedAscending":
-          setData(generatedSortedAscendingData(numBars, minValue, maxValue));
-          break;
-        case "sortedDescending":
-          setData(generatedSortedDescendingData(numBars, minValue, maxValue));
-          break;
-        default:
-          setData(generateRandomData(numBars, minValue, maxValue));
-          break;
+
+      case "almostSortedAscending": {
+        const data = generateAlmostSortedAscendingData(
+          numBars,
+          minValue,
+          maxValue
+        );
+        setData(data);
+        setSteps(generateSteps(data));
+        break;
       }
-      sortGeneratorRef.current = null;
-    },
-    [numBars, minValue, maxValue, resetData]
-  );
+      case "almostSortedDescending": {
+        const data = generateAlmostSortedDescendingData(
+          numBars,
+          minValue,
+          maxValue
+        );
+        setData(data);
+        setSteps(generateSteps(data));
+        break;
+      }
+      case "sortedAscending": {
+        const data = generatedSortedAscendingData(numBars, minValue, maxValue);
+        setData(data);
+        setSteps(generateSteps(data));
+        break;
+      }
+      case "sortedDescending": {
+        const data = generatedSortedDescendingData(numBars, minValue, maxValue);
+        setData(data);
+        setSteps(generateSteps(data));
+        break;
+      }
+      default: {
+        const data = generateRandomData(numBars, minValue, maxValue);
+        setData(data);
+        setSteps(generateSteps(data));
+        break;
+      }
+    }
+  }, [setSortingState, setData, sortOrder, numBars, minValue, maxValue]);
 
   return {
-    data,
-    setData,
-    sortGeneratorRef,
-    animationFrameId,
     generateData,
   };
 }

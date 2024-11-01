@@ -1,88 +1,63 @@
 import Bars from "@/components/Bars";
-import { useState, useCallback, useEffect } from "react";
 import Description from "@/components/Description";
-import { useAppContext } from "../context/app-context";
-import useGenerateData from "../hooks/use-generate-data";
-import Controls from "@/components/Controls";
+import ManualControls from "@/components/ManualControls";
 import Options from "@/components/Options";
+import useGenerateData from "@/hooks/use-generate-data";
+import { useEffect } from "react";
+import { useAppContext } from "../context/app-context";
+import Step from "@/types/Step";
+import DataElement from "@/types/DataElement";
+import AutoControls from "@/components/AutoControls";
+import { HighlightedRange } from "@/types/HighlightedElements";
 
 export default function MergeSort() {
-  const {
-    numBars,
-    maxValue,
-    minValue,
-    speed,
-    sortOrder,
-    isSorting,
-    updateIsSorting,
-  } = useAppContext();
-
-  const [leftIndices, setLeftIndices] = useState<number[]>([]);
-  const [rightIndices, setRightIndices] = useState<number[]>([]);
-
-  const resetPointers = useCallback(() => {
-    setLeftIndices([]);
-    setRightIndices([]);
-  }, []);
-
-  const { data, setData, sortGeneratorRef, animationFrameId, generateData } =
-    useGenerateData({
-      numBars,
-      minValue,
-      maxValue,
-      updateIsSorting,
-      resetData: resetPointers,
-    });
+  const { steps, mode, currentStep, nextStep, previousStep } = useAppContext();
+  const { generateData } = useGenerateData({
+    generateSteps,
+  });
 
   useEffect(() => {
-    generateData(sortOrder);
+    generateData();
   }, []);
 
-  type MergeSortYield = {
-    array: { id: string; value: number }[];
-    leftIndices: number[];
-    rightIndices: number[];
-  };
-
-  function* mergeSortGenerator(
-    array: { id: string; value: number }[]
-  ): Generator<MergeSortYield> {
+  function generateSteps(data: DataElement[]) {
     function merge(
-      left: { value: number; id: string }[],
-      right: { value: number; id: string }[]
-    ): {
-      mergedArray: { value: number; id: string }[];
-      leftIndices: number[];
-      rightIndices: number[];
-    } {
+      leftSubarray: { value: number; id: string }[],
+      rightSubarray: { value: number; id: string }[]
+    ) {
       const mergedArray: { value: number; id: string }[] = [];
-      const leftIndices: number[] = [];
-      const rightIndices: number[] = [];
       let leftPointer = 0;
       let rightPointer = 0;
+      const leftIndices: number[] = [];
+      const rightIndices: number[] = [];
 
-      while (leftPointer < left.length && rightPointer < right.length) {
-        if (left[leftPointer].value <= right[rightPointer].value) {
-          mergedArray.push(left[leftPointer]);
+      while (
+        leftPointer < leftSubarray.length &&
+        rightPointer < rightSubarray.length
+      ) {
+        if (
+          leftSubarray[leftPointer].value <= rightSubarray[rightPointer].value
+        ) {
+          mergedArray.push(leftSubarray[leftPointer]);
           leftIndices.push(mergedArray.length - 1);
           leftPointer++;
         } else {
-          mergedArray.push(right[rightPointer]);
+          mergedArray.push(rightSubarray[rightPointer]);
           rightIndices.push(mergedArray.length - 1);
           rightPointer++;
         }
       }
 
       // Handle remaining elements in left array
-      while (leftPointer < left.length) {
-        mergedArray.push(left[leftPointer]);
+      while (leftPointer < leftSubarray.length) {
+        mergedArray.push(leftSubarray[leftPointer]);
         leftIndices.push(mergedArray.length - 1);
         leftPointer++;
       }
 
       // Handle remaining elements in right array
-      while (rightPointer < right.length) {
-        mergedArray.push(right[rightPointer]);
+      while (rightPointer < rightSubarray.length) {
+        mergedArray.push(rightSubarray[rightPointer]);
         rightIndices.push(mergedArray.length - 1);
         rightPointer++;
       }
@@ -90,6 +65,127 @@ export default function MergeSort() {
       return { mergedArray, leftIndices, rightIndices };
     }
 
+    const array = [...data];
+    const steps: Step[] = [
+      { currentState: [...array], highlightedIndices: [], action: "start" },
+    ];
+
+    let subarraySize = 1;
+    while (subarraySize <= array.length) {
+      let leftStart = 0;
+      let rightStart = leftStart + subarraySize;
+
+      while (leftStart < data.length) {
+        const leftSubarray = array.slice(leftStart, leftStart + subarraySize);
+        const rightSubarray = array.slice(
+          rightStart,
+          rightStart + subarraySize
+        );
+
+        const highlightedRanges: HighlightedRange = [
+          {
+            range: [
+              leftStart,
+              Math.min(leftStart + subarraySize - 1, array.length - 1),
+            ],
+            color: "red",
+            label: "Left",
+          },
+        ];
+
+        if (rightStart < array.length) {
+          highlightedRanges.push({
+            range: [
+              rightStart,
+              Math.min(rightStart + subarraySize - 1, array.length - 1),
+            ],
+            color: "green",
+            label: "Right",
+          });
+        }
+
+        steps.push({
+          currentState: [...array],
+          highlightedRange: highlightedRanges,
+          action: "compare",
+        });
+
+        const { mergedArray, leftIndices, rightIndices } = merge(
+          leftSubarray,
+          rightSubarray
+        );
+        array.splice(leftStart, mergedArray.length, ...mergedArray);
+        steps.push({
+          currentState: [...array],
+          highlightedIndices: [
+            {
+              indices: leftIndices.map((index) => index + leftStart),
+              color: "red",
+            },
+            {
+              indices: rightIndices.map((index) => index + leftStart),
+              color: "green",
+            },
+          ],
+          action: "swap",
+        });
+
+        leftStart += subarraySize * 2;
+        rightStart += subarraySize * 2;
+      }
+      subarraySize *= 2;
+    }
+
+    steps.push({
+      currentState: [...array],
+      highlightedRange: [
+        {
+          range: [0, array.length - 1],
+          color: "green",
+          label: "Sorted",
+        },
+      ],
+      action: "done",
+    });
+    return steps;
+  }
+
+  return (
+    <>
+      <h1 className="text-4xl text-center font-bold mt-8">Merge Sort</h1>
+      {steps.length && <Bars currentStep={steps[currentStep]} />}
+
+      {mode === "manual" ? (
+        <ManualControls
+          generateData={generateData}
+          nextStep={nextStep}
+          prevStep={previousStep}
+        />
+      ) : (
+        <AutoControls generateData={generateData} />
+      )}
+      <Options />
+      <Description description={description} />
+    </>
+  );
+}
+
+const description = {
+  description:
+    "Merge Sort is a divide-and-conquer comparison sorting algorithm. It works by recursively splitting the input list into smaller sublists until each sublist contains a single element. It then merges these sublists in a sorted manner to produce a final sorted list. The operation of merging two sorted arrays is a O(n) operation. Alternatively, Merge Sort can be implemented iteratively, where we start with the smallest possible subarray (a list with a single element), and merge them together, doubling the subarray size each time until we have the final sorted list. Merge Sort is well-suited for large datasets due to its predictable time complexity.",
+  link: "https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/merge-sort.ts",
+  timeComplexity:
+    "Merge Sort has a time complexity of O(n log n) in all cases (best, average, and worst). The list is split in half until each sublist contains a single element, which takes O(log n) time. Each time, the lists must be merged together, which is an O(n) operation, resulting in a time complexity of O(n log n).",
+  spaceComplexity:
+    "Merge Sort has a space complexity of O(n) because it requires additional memory for the temporary arrays used during the merging process.",
+  stability:
+    "Yes. Merge Sort is a stable sorting algorithm. Equal elements retain their relative order during the merging process.",
+};
+
+/**
+  function* mergeSortGenerator(
+    array: { id: string; value: number }[]
+  ): Generator<MergeSortYield> {
     let subarraySize = 1;
     while (subarraySize <= data.length * 2) {
       let left = 0;
@@ -126,83 +222,4 @@ export default function MergeSort() {
       subarraySize *= 2;
     }
   }
-
-  const step = useCallback(() => {
-    if (!sortGeneratorRef.current || isSorting.current !== "playing") return;
-
-    const next =
-      sortGeneratorRef.current.next() as IteratorResult<MergeSortYield>;
-    if (!next.done) {
-      const { array, leftIndices, rightIndices } = next.value;
-      setData(array);
-      setLeftIndices(leftIndices);
-      setRightIndices(rightIndices);
-
-      animationFrameId.current = requestAnimationFrame(() => {
-        setTimeout(step, 750 / speed);
-      });
-    } else {
-      updateIsSorting("idle");
-      resetPointers();
-    }
-  }, [speed, isSorting]);
-
-  const startSorting = useCallback(() => {
-    if (isSorting.current === "playing") return;
-
-    if (isSorting.current === "paused") {
-      updateIsSorting("playing");
-      if (!sortGeneratorRef.current) {
-        sortGeneratorRef.current = mergeSortGenerator([...data]);
-      }
-      step();
-      return;
-    }
-
-    updateIsSorting("playing");
-    sortGeneratorRef.current = mergeSortGenerator([...data]);
-    step();
-  }, [isSorting, data, step]);
-
-  const pauseSorting = useCallback(() => {
-    updateIsSorting("paused");
-    if (animationFrameId.current) {
-      cancelAnimationFrame(animationFrameId.current);
-    }
-  }, [isSorting]);
-
-  return (
-    <>
-      <h1 className="text-4xl text-center font-bold mt-8">Merge Sort</h1>
-      <Bars
-        data={data}
-        highlightedIndices={[
-          { color: "lightcoral", indices: leftIndices },
-          {
-            color: "limegreen",
-            indices: rightIndices,
-          },
-        ]}
-      />
-      <Controls
-        generateData={generateData}
-        startSort={startSorting}
-        pauseSort={pauseSorting}
-      />
-      <Options />
-      <Description description={description} />
-    </>
-  );
-}
-
-const description = {
-  description:
-    "Merge Sort is a divide-and-conquer comparison sorting algorithm. It works by recursively splitting the input list into smaller sublists until each sublist contains a single element. It then merges these sublists in a sorted manner to produce a final sorted list. This approach is done because merging two sorted arrays is a O(n) operation. Alternatively, Merge Sort can be implemented iteratively, where we start with the smallest possible subarray (a list with a single element), and merge them together, doubling the subarray size each time until we have the final sorted list. Merge Sort is well-suited for large datasets due to its predictable time complexity.",
-  link: "https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/merge-sort.ts",
-  timeComplexity:
-    "Merge Sort has a time complexity of O(n log n) in all cases (best, average, and worst). The list is split in half until each sublist contains a single element, which takes O(log n) time. Each time, the lists must be merged together, which is an O(n) operation, resulting in a time complexity of O(n log n).",
-  spaceComplexity:
-    "Merge Sort has a space complexity of O(n) because it requires additional memory for the temporary arrays used during the merging process.",
-  stability:
-    "Yes. Merge Sort is a stable sorting algorithm. Equal elements retain their relative order during the merging process.",
-};
+ */

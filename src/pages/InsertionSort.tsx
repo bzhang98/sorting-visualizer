@@ -1,147 +1,92 @@
 import Bars from "@/components/Bars";
-import { useState, useCallback, useEffect } from "react";
 import Description from "@/components/Description";
-import useGenerateData from "../hooks/use-generate-data";
-import { useAppContext } from "../context/app-context";
-import Controls from "@/components/Controls";
+import ManualControls from "@/components/ManualControls";
 import Options from "@/components/Options";
+import useGenerateData from "@/hooks/use-generate-data";
+import { useEffect } from "react";
+import { useAppContext } from "../context/app-context";
+import Step from "@/types/Step";
+import DataElement from "@/types/DataElement";
+import AutoControls from "@/components/AutoControls";
 
-export default function SelectionSort() {
-  const {
-    numBars,
-    maxValue,
-    minValue,
-    speed,
-    sortOrder,
-    isSorting,
-    updateIsSorting,
-  } = useAppContext();
-  const [highlightedIndices, setHighlightedIndices] = useState<null | number[]>(
-    null
-  );
-
-  const resetPointers = useCallback(() => {
-    setHighlightedIndices([]);
-  }, []);
-
-  const { data, setData, sortGeneratorRef, animationFrameId, generateData } =
-    useGenerateData({
-      numBars,
-      minValue,
-      maxValue,
-      updateIsSorting,
-      resetData: resetPointers,
-    });
+export default function InsertionSort() {
+  const { steps, mode, currentStep, nextStep, previousStep } = useAppContext();
+  const { generateData } = useGenerateData({
+    generateSteps,
+  });
 
   useEffect(() => {
-    generateData(sortOrder);
+    generateData();
   }, []);
 
-  type InsertionSortYield = {
-    array: { id: string; value: number }[];
-    highlightedIndices: number[] | null;
-  };
+  function generateSteps(data: DataElement[]) {
+    const array = [...data];
+    const steps: Step[] = [
+      { currentState: [...array], highlightedIndices: [], action: "start" },
+    ];
 
-  function* insertionSortGenerator(
-    array: { id: string; value: number }[]
-  ): Generator<InsertionSortYield> {
     for (let i = 1; i < array.length; i++) {
       for (let j = i; j > 0; j--) {
-        yield {
-          array,
-          highlightedIndices: [j, j - 1],
-        };
-
+        steps.push({
+          currentState: [...array],
+          highlightedIndices: [{ indices: [j], color: "red" }],
+          highlightedRange: [
+            {
+              range: [0, i],
+              color: "green",
+              label: "Sorted",
+            },
+          ],
+          action: "compare",
+        });
         if (array[j - 1].value > array[j].value) {
-          yield {
-            array,
-            highlightedIndices: [j, j - 1],
-          };
           [array[j - 1], array[j]] = [array[j], array[j - 1]];
-
-          yield {
-            array,
-            highlightedIndices: [j - 1, j],
-          };
-          yield {
-            array,
-            highlightedIndices: [j - 1, j],
-          };
+          steps.push({
+            currentState: [...array],
+            highlightedIndices: [{ indices: [j - 1], color: "red" }],
+            highlightedRange: [
+              {
+                range: [0, i],
+                color: "green",
+                label: "Sorted",
+              },
+            ],
+            action: "swap",
+          });
         } else {
-          yield {
-            array,
-            highlightedIndices: [j, j - 1],
-          };
           break;
         }
       }
     }
+
+    steps.push({
+      currentState: [...array],
+      highlightedRange: [
+        {
+          range: [0, array.length - 1],
+          color: "green",
+          label: "Sorted",
+        },
+      ],
+      action: "done",
+    });
+    return steps;
   }
-
-  const step = useCallback(() => {
-    if (!sortGeneratorRef.current || isSorting.current !== "playing") return;
-
-    const next =
-      sortGeneratorRef.current.next() as IteratorResult<InsertionSortYield>;
-    if (!next.done) {
-      const { array, highlightedIndices } = next.value;
-      setData(array);
-      setHighlightedIndices(highlightedIndices);
-
-      animationFrameId.current = requestAnimationFrame(() => {
-        setTimeout(step, 250 / speed);
-      });
-    } else {
-      updateIsSorting("idle");
-      resetPointers();
-    }
-  }, [speed, isSorting]);
-
-  const startSorting = useCallback(() => {
-    if (isSorting.current === "playing") return;
-
-    if (isSorting.current === "paused") {
-      updateIsSorting("playing");
-      if (!sortGeneratorRef.current) {
-        sortGeneratorRef.current = insertionSortGenerator([...data]);
-      }
-      step();
-      return;
-    }
-
-    updateIsSorting("playing");
-    sortGeneratorRef.current = insertionSortGenerator([...data]);
-    step();
-  }, [isSorting, data, step]);
-
-  const pauseSorting = useCallback(() => {
-    updateIsSorting("paused");
-    if (animationFrameId.current) {
-      cancelAnimationFrame(animationFrameId.current);
-    }
-  }, [isSorting]);
 
   return (
     <>
       <h1 className="text-4xl text-center font-bold mt-8">Insertion Sort</h1>
-      <Bars
-        data={data}
-        highlightedIndices={[
-          {
-            indices: highlightedIndices ? [highlightedIndices[0]] : [],
-            color: "limegreen",
-          },
-          {
-            indices: highlightedIndices ? [highlightedIndices[1]] : [],
-            color: "lightcoral",
-          },
-        ]}
-      />
-      <Controls
-        generateData={generateData}
-        startSort={startSorting}
-        pauseSort={pauseSorting}
-      />
+      {steps.length && <Bars currentStep={steps[currentStep]} />}
+
+      {mode === "manual" ? (
+        <ManualControls
+          generateData={generateData}
+          nextStep={nextStep}
+          prevStep={previousStep}
+        />
+      ) : (
+        <AutoControls generateData={generateData} />
+      )}
       <Options />
       <Description description={description} />
     </>
@@ -157,5 +102,5 @@ const description = {
   spaceComplexity:
     "Because Insertion Sort is implemented iteratively and does not require any additional memory, it has a O(1) space complexity.",
   stability:
-    "Yes. Insertion Sort is a stable sorting algorithm. If two elements are equal, their relative order is preserved.",
+    "Yes. Insertion Sort is a stable sorting algorithm. Equal elements retain their relative order during the merging process.",
 };
