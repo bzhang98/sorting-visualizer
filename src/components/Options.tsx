@@ -1,5 +1,4 @@
 import { useAppContext } from "@/context/app-context";
-import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { Slider } from "./ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
@@ -18,7 +17,6 @@ export default function Options() {
     setSpeed,
     sortingState,
     mode,
-    setMode,
   } = useAppContext();
 
   return (
