@@ -36,12 +36,12 @@ Check out the live demo [here](https://sorting-visualizer-silk-xi.vercel.app).
     ```
 4. Start the development server:
     ```bash
-    npm start
+    npm run dev
     ```
 
 ## Usage
 
-1. Open your browser and go to `http://localhost:3000`.
+1. Open your browser and go to `http://localhost:5173`.
 2. Select a sorting algorithm from the dropdown menu.
 3. Click the "Generate Array" button to create a new array.
 4. Use the controls to start, pause, or step through the sorting process.
