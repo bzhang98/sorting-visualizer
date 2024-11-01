@@ -43,7 +43,7 @@ Check out the live demo [here](https://sorting-visualizer-silk-xi.vercel.app).
 
 1. Open your browser and go to `http://localhost:5173`.
 2. Select a sorting algorithm from the dropdown menu.
-3. Click the "Generate Array" button to create a new array.
+3. Click the "Randomize" button to create a new array.
 4. Use the controls to start, pause, or step through the sorting process.
 
 ## Contributing
