@@ -33,6 +33,8 @@ interface AppContextType {
   currentStep: number;
   nextStep: () => void;
   previousStep: () => void;
+  firstStep: () => void;
+  lastStep: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -96,6 +98,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const firstStep = () => {
+    setCurrentStep(0);
+  };
+
+  const lastStep = () => {
+    setCurrentStep(steps.length - 1);
+  };
+
   const totalReset = () => {
     setSortingState("idle");
     setCurrentStep(0);
@@ -126,6 +136,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         currentStep,
         nextStep,
         previousStep,
+        firstStep,
+        lastStep,
       }}
     >
       {children}

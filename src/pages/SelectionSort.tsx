@@ -1,16 +1,15 @@
 import Bars from "@/components/Bars";
 import Description from "@/components/Description";
-import ManualControls from "@/components/ManualControls";
 import Options from "@/components/Options";
 import useGenerateData from "@/hooks/use-generate-data";
 import { useEffect } from "react";
 import { useAppContext } from "../context/app-context";
 import Step from "@/types/Step";
 import DataElement from "@/types/DataElement";
-import AutoControls from "@/components/AutoControls";
+import Controls from "@/components/Controls";
 
 export default function SelectionSort() {
-  const { steps, mode, currentStep, nextStep, previousStep } = useAppContext();
+  const { steps, currentStep } = useAppContext();
   const { generateData } = useGenerateData({
     generateSteps,
   });
@@ -172,15 +171,7 @@ export default function SelectionSort() {
       <h1 className="text-4xl text-center font-bold mt-8">Selection Sort</h1>
       {steps.length && <Bars currentStep={steps[currentStep]} />}
 
-      {mode === "manual" ? (
-        <ManualControls
-          generateData={generateData}
-          nextStep={nextStep}
-          prevStep={previousStep}
-        />
-      ) : (
-        <AutoControls generateData={generateData} />
-      )}
+      <Controls generateData={generateData} />
       <Options />
       <Description description={description} />
     </>

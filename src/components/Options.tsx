@@ -29,20 +29,6 @@ export default function Options() {
         margin: "1rem auto",
       }}
     >
-      <div className="flex gap-2 items-center">
-        <Switch
-          defaultChecked={mode === "manual"}
-          onCheckedChange={(e) => {
-            if (e) {
-              setMode("manual");
-              setSpeed(1);
-            } else {
-              setMode("auto");
-            }
-          }}
-        />
-        <Label>Manual Mode</Label>
-      </div>
       <div>
         <Label htmlFor="speed" className="block">
           Speed: {speed}x
