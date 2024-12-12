@@ -51,7 +51,6 @@ const Visualizer = ({
     >
       {data.map((element, index) => {
         const fill = highlights[element.id] || "fill-sky-600";
-        console.log(fill);
 
         return (
           <motion.svg
