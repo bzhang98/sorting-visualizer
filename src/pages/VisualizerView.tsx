@@ -294,7 +294,7 @@ const VisualizerView = () => {
   useEffect(() => {
     if (isPlaying) {
       const intervalId = setInterval(() => {
-        incrementStep();
+        if (!isProcessing.current) incrementStep();
       }, 250 / settings.speed);
       return () => {
         clearInterval(intervalId);
