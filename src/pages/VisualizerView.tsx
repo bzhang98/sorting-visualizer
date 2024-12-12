@@ -283,7 +283,7 @@ const VisualizerView = () => {
     if (isPlaying) {
       const intervalId = setInterval(() => {
         incrementStep();
-      }, 250 / settings.speed);
+      }, 300 / settings.speed);
       return () => {
         clearInterval(intervalId);
       };
