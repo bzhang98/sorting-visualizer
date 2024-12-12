@@ -115,7 +115,7 @@ const VisualizerView = () => {
       setIsPlaying(false);
       return;
     }
-    console.log(currentStep);
+
     isProcessing.current = true;
 
     if (steps[currentStep].swapIndices) {
