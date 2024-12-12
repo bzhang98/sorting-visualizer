@@ -118,6 +118,7 @@ const VisualizerView = () => {
     }
 
     isProcessing.current = true;
+    justGenerated.current = false;
 
     if (steps[currentStep].swapIndices) {
       const dataCopy = [...data];
@@ -129,7 +130,6 @@ const VisualizerView = () => {
         setCurrentStep((prev) => {
           return justGenerated.current ? 0 : prev + 1;
         });
-        justGenerated.current = false;
         isProcessing.current = false;
         if (!isPlaying) {
           updateSettings("stepEnabled", true);
