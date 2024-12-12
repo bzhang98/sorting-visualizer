@@ -1,131 +1,108 @@
-import { useAppContext } from "@/context/app-context";
+import React, { ComponentProps } from "react";
 import { Label } from "./ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 import { Slider } from "./ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
+import Sidebar from "./Sidebar";
 
-export default function Options() {
-  const {
-    numBars,
-    setNumBars,
-    sortOrder,
-    setSortOrder,
-    minValue,
-    setMinValue,
-    maxValue,
-    setMaxValue,
-    speed,
-    setSpeed,
-    sortingState,
-    mode,
-  } = useAppContext();
-
+const Options: React.FC<ComponentProps<typeof Sidebar>> = ({
+  settings,
+  updateSettings,
+}) => {
   return (
-    <div
-      className="options px-4 flex flex-col gap-4"
-      style={{
-        width: "clamp(700px, 100%, 1000px)",
-        margin: "1rem auto",
-      }}
-    >
-      <div>
-        <Label htmlFor="speed" className="block">
-          Speed: {speed}x
-        </Label>
-        <Slider
-          value={[speed]}
-          onValueChange={(value) => setSpeed(value[0])}
-          min={0.25}
-          max={10}
-          step={0.05}
-          className={`w-[300px] my-4 ${
-            sortingState === "playing" || mode === "manual"
-              ? "opacity-50 cursor-not-allowed"
-              : "cursor-grab"
-          }`}
-          disabled={sortingState === "playing" || mode === "manual"}
-        />
-      </div>
-      <div>
-        <Label htmlFor="numBars" className="block">
-          Number of Elements: {numBars}
-        </Label>
+    <>
+      <div className="flex flex-col gap-4">
         <div>
+          <Label htmlFor="numBars" className="mb-2 block">
+            Number of Elements: {settings.numBars}
+          </Label>
+          <div>
+            <Slider
+              id="numBars"
+              min={5}
+              max={50}
+              step={1}
+              value={[settings.numBars]}
+              onValueChange={(value) => {
+                updateSettings("numBars", value[0]);
+              }}
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="minValue" className="mb-2 block">
+            Minimum Value: {settings.minValue}
+          </Label>
           <Slider
-            value={[numBars]}
-            onValueChange={(value) => setNumBars(value[0])}
-            min={5}
-            max={50}
+            id="minValue"
+            min={1}
+            max={100}
             step={1}
-            className="w-[300px] my-2 cursor-grab"
+            value={[settings.minValue]}
+            onValueChange={(value) => {
+              const newValue = value[0];
+              if (newValue <= settings.maxValue) {
+                updateSettings("minValue", newValue);
+              }
+            }}
           />
         </div>
+        <div>
+          <Label htmlFor="maxValue" className="mb-2 block">
+            Maximum Value: {settings.maxValue}
+          </Label>
+          <Slider
+            min={1}
+            max={100}
+            step={1}
+            value={[settings.maxValue]}
+            onValueChange={(value) => {
+              const newValue = value[0];
+              if (newValue >= settings.minValue) {
+                updateSettings("maxValue", newValue);
+              }
+            }}
+          />
+        </div>
+        <div>
+          <Label htmlFor="sortOrder" className="mb-2 block">
+            Initial Sort Order
+          </Label>
+          <Select
+            value={settings.sortOrder}
+            onValueChange={(value) => {
+              updateSettings("sortOrder", value);
+            }}
+          >
+            <SelectTrigger id="sortOrder">
+              <SelectValue placeholder="Select sort order for initial data..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="random">Random</SelectItem>
+              <SelectItem value="almostSortedAscending">
+                Almost Sorted (Ascending)
+              </SelectItem>
+              <SelectItem value="almostSortedDescending">
+                Almost Sorted (Descending)
+              </SelectItem>
+              <SelectItem value="sortedAscending">
+                Sorted (Ascending)
+              </SelectItem>
+              <SelectItem value="sortedDescending">
+                Sorted (Descending)
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
-      <div>
-        <Label htmlFor="maxValue" className="block">
-          Maximum Value: {maxValue}
-        </Label>
-        <Slider
-          value={[maxValue]}
-          onValueChange={(value) => {
-            const newValue = value[0];
-            // Ensure maxValue does not go below minValue
-            if (newValue >= minValue) {
-              setMaxValue(newValue);
-            }
-          }}
-          min={1}
-          max={100}
-          step={1}
-          className="w-[300px] my-4 cursor-grab"
-        />
-      </div>
-      <div>
-        <Label htmlFor="minValue" className="block">
-          Minimum Value: {minValue}
-        </Label>
-        <Slider
-          value={[minValue]}
-          onValueChange={(value) => {
-            const newValue = value[0];
-            // Ensure minValue does not go above maxValue
-            if (newValue <= maxValue) {
-              setMinValue(newValue);
-            }
-          }}
-          min={1}
-          max={100}
-          step={1}
-          className="w-[300px] my-4 cursor-grab"
-        />
-      </div>
-      <div>
-        <Label htmlFor="sortOrder" className="block mb-2">
-          Sort Order
-        </Label>
-        <Select
-          value={sortOrder}
-          onValueChange={(value) => {
-            setSortOrder(value);
-          }}
-        >
-          <SelectTrigger id="sortOrder" className="w-[300px]">
-            {sortOrder}
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="random">Random</SelectItem>
-            <SelectItem value="almostSortedAscending">
-              Almost Sorted (Ascending)
-            </SelectItem>
-            <SelectItem value="almostSortedDescending">
-              Almost Sorted (Descending)
-            </SelectItem>
-            <SelectItem value="sortedAscending">Sorted (Ascending)</SelectItem>
-            <SelectItem value="sortedDescending">
-              Sorted (Descending)
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
+    </>
   );
-}
+};
+
+export default Options;

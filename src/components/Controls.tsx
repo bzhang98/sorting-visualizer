@@ -1,96 +1,64 @@
-import { useAppContext } from "@/context/app-context";
+import React, { ComponentProps } from "react";
+import { Label } from "./ui/label";
+import { Slider } from "./ui/slider";
+import { Button } from "./ui/button";
 import {
+  ChevronFirst,
+  ChevronLeft,
   Play,
   Pause,
-  RotateCcw,
-  ChevronLeft,
   ChevronRight,
   ChevronLast,
-  ChevronFirst,
 } from "lucide-react";
-import { Button } from "./ui/button";
 
-export default function Controls({
-  generateData,
-}: {
-  generateData: () => void;
-}) {
-  const {
-    sortingState,
-    setSortingState,
-    nextStep,
-    previousStep,
-    firstStep,
-    lastStep,
-  } = useAppContext();
+import Sidebar from "./Sidebar";
 
+const Controls: React.FC<ComponentProps<typeof Sidebar>> = ({
+  settings,
+  updateSettings,
+  incrementStep,
+  decrementStep,
+  skipToEnd,
+  skipToStart,
+  isPlaying,
+  togglePlay,
+}) => {
   return (
-    <div
-      className="controls flex items-center gap-8 mb-8 px-4 pt-4 border-t-2"
-      style={{
-        width: "clamp(700px, 100%, 1000px)",
-        margin: "0 auto",
-      }}
-    >
+    <>
+      <div className="mb-4">
+        <Label htmlFor="speed" className="mb-2 block">
+          Speed: {settings.speed}x
+        </Label>
+        <Slider
+          id="speed"
+          min={0.25}
+          max={10}
+          step={0.05}
+          value={[settings.speed]}
+          onValueChange={(value) => {
+            updateSettings("speed", value[0]);
+          }}
+        />
+      </div>
       <div className="flex gap-2">
-        <Button
-          onClick={() => {
-            firstStep();
-            setSortingState("idle");
-          }}
-        >
-          <ChevronFirst />
+        <Button onClick={skipToStart} disabled={!settings.stepEnabled}>
+          <ChevronFirst size={16} />
         </Button>
-        <Button
-          onClick={() => {
-            previousStep();
-            setSortingState("idle");
-          }}
-        >
-          <ChevronLeft />
+        <Button onClick={decrementStep} disabled={!settings.stepEnabled}>
+          <ChevronLeft size={16} />
         </Button>
-        {sortingState === "playing" ? (
-          <Button
-            onClick={() => {
-              setSortingState("paused");
-            }}
-          >
-            <Pause />
-          </Button>
-        ) : (
-          <Button
-            onClick={() => {
-              setSortingState("playing");
-            }}
-          >
-            <Play />
-          </Button>
-        )}
-        <Button
-          onClick={() => {
-            nextStep();
-            setSortingState("idle");
-          }}
-        >
-          <ChevronRight />
+        <Button onClick={togglePlay}>
+          {!isPlaying ? <Play size={16} /> : <Pause size={16} />}
         </Button>
-        <Button
-          onClick={() => {
-            lastStep();
-            setSortingState("idle");
-          }}
-        >
-          <ChevronLast />
+        <Button onClick={incrementStep} disabled={!settings.stepEnabled}>
+          <ChevronRight size={16} />
+        </Button>
+        <Button onClick={skipToEnd} disabled={!settings.stepEnabled}>
+          <ChevronLast size={16} />
         </Button>
       </div>
-
-      <Button
-        onClick={() => {
-          generateData();
-        }}
-      >
-        <RotateCcw /> Randomize
-      </Button>
-    </div>
+    </>
   );
-}
+};
+
+export default Controls;

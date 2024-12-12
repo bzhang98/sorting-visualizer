@@ -1,11 +1,9 @@
-import DataElement from "./DataElement";
-import { HighlightedIndices, HighlightedRange } from "./HighlightedElements";
-
 interface Step {
-  currentState: DataElement[];
-  highlightedIndices?: HighlightedIndices;
-  highlightedRange?: HighlightedRange;
-  action: "start" | "swap" | "compare" | "done";
+  swapIndices?: number[];
+  highlights?: {
+    elements: { id: string; index: number }[];
+    color: string;
+  }[];
 }
 
 export default Step;
