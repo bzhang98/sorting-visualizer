@@ -115,7 +115,7 @@ const VisualizerView = () => {
       setIsPlaying(false);
       return;
     }
-
+    console.log(currentStep);
     isProcessing.current = true;
 
     if (steps[currentStep].swapIndices) {
@@ -126,16 +126,13 @@ const VisualizerView = () => {
       setData([...dataCopy]);
       setTimeout(() => {
         setCurrentStep(currentStep + 1);
-
         isProcessing.current = false;
-
         if (!isPlaying) {
           updateSettings("stepEnabled", true);
         }
       }, 250 / settings.speed);
     } else {
       setCurrentStep(currentStep + 1);
-
       isProcessing.current = false;
     }
   }, [currentStep, data, isPlaying, settings.speed, steps]);
@@ -294,8 +291,10 @@ const VisualizerView = () => {
   useEffect(() => {
     if (isPlaying) {
       const intervalId = setInterval(() => {
-        if (!isProcessing.current) incrementStep();
-      }, 250 / settings.speed);
+        if (isProcessing.current) return;
+        incrementStep();
+      }, 350 / settings.speed);
+
       return () => {
         clearInterval(intervalId);
       };
