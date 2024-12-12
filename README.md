@@ -19,6 +19,7 @@ This Sorting Visualizer application is a tool designed to help users understand 
 ## Live Demo
 
 Check out the live demo [here](https://sorting-visualizer-silk-xi.vercel.app).
+The deployment may occasionally experience random bugs due to its current live deployment status.
 
 ## Installation
 
