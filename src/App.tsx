@@ -14,7 +14,7 @@ export default function App() {
         <Route path="/learn" element={<Learn />} />
       </Routes>
       <div className="flex items-center justify-center border-t py-4">
-        <p className="text-sm text-gray-500">
+        <p className="text-center text-sm text-gray-500">
           © {new Date().getFullYear()} Brian Zhang. MIT License | Open Source
           Project
         </p>
