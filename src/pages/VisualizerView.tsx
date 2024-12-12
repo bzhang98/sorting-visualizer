@@ -106,6 +106,7 @@ const VisualizerView = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const isProcessing = useRef(false);
+  const justGenerated = useRef(false);
 
   const incrementStep = useCallback(() => {
     if (isProcessing.current) {
@@ -125,14 +126,17 @@ const VisualizerView = () => {
       [dataCopy[i], dataCopy[j]] = [dataCopy[j], dataCopy[i]];
       setData([...dataCopy]);
       setTimeout(() => {
-        setCurrentStep(currentStep + 1);
+        setCurrentStep((prev) => {
+          return justGenerated.current ? 0 : prev + 1;
+        });
+        justGenerated.current = false;
         isProcessing.current = false;
         if (!isPlaying) {
           updateSettings("stepEnabled", true);
         }
       }, 250 / settings.speed);
     } else {
-      setCurrentStep(currentStep + 1);
+      setCurrentStep((prev) => prev + 1);
       isProcessing.current = false;
     }
   }, [currentStep, data, isPlaying, settings.speed, steps]);
@@ -270,9 +274,13 @@ const VisualizerView = () => {
     const steps = generateSteps(data);
     setData(data);
     setSteps(steps);
+    justGenerated.current = true;
+  }, [generateData, generateSteps]);
+
+  useEffect(() => {
     setCurrentStep(0);
     setIsPlaying(false);
-  }, [generateData, generateSteps]);
+  }, [steps]);
 
   useEffect(() => {
     generate();
@@ -283,13 +291,6 @@ const VisualizerView = () => {
   useEffect(() => {
     if (isPlaying) {
       updateSettings("stepEnabled", false);
-    } else {
-      updateSettings("stepEnabled", true);
-    }
-  }, [isPlaying]);
-
-  useEffect(() => {
-    if (isPlaying) {
       const intervalId = setInterval(() => {
         if (isProcessing.current) return;
         incrementStep();
@@ -298,6 +299,8 @@ const VisualizerView = () => {
       return () => {
         clearInterval(intervalId);
       };
+    } else {
+      updateSettings("stepEnabled", true);
     }
   }, [incrementStep, isPlaying, settings.speed]);
 
