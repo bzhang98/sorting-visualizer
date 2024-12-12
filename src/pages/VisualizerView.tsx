@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 import Sidebar from "@/components/Sidebar";
 
@@ -105,12 +105,19 @@ const VisualizerView = () => {
   const [legend, setLegend] = useState<LegendItem[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const isProcessing = useRef(false);
 
   const incrementStep = useCallback(() => {
+    if (isProcessing.current) {
+      return;
+    }
     if (currentStep === steps.length - 1) {
       setIsPlaying(false);
       return;
     }
+
+    isProcessing.current = true;
+
     if (steps[currentStep].swapIndices) {
       const dataCopy = [...data];
       updateSettings("stepEnabled", false);
@@ -119,12 +126,17 @@ const VisualizerView = () => {
       setData([...dataCopy]);
       setTimeout(() => {
         setCurrentStep(currentStep + 1);
+
+        isProcessing.current = false;
+
         if (!isPlaying) {
           updateSettings("stepEnabled", true);
         }
       }, 250 / settings.speed);
     } else {
       setCurrentStep(currentStep + 1);
+
+      isProcessing.current = false;
     }
   }, [currentStep, data, isPlaying, settings.speed, steps]);
 
@@ -283,7 +295,7 @@ const VisualizerView = () => {
     if (isPlaying) {
       const intervalId = setInterval(() => {
         incrementStep();
-      }, 300 / settings.speed);
+      }, 250 / settings.speed);
       return () => {
         clearInterval(intervalId);
       };

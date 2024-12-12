@@ -61,7 +61,7 @@ const Visualizer = ({
             height="100%"
             initial={{ x: (width / data.length) * index }}
             animate={{ x: (width / data.length) * index }}
-            transition={{ duration: 0.25 / speed, ease: "easeIn" }}
+            transition={{ duration: 0.2 / speed, ease: "easeIn" }}
             overflow="visible"
           >
             <rect
