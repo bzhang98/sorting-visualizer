@@ -21,7 +21,7 @@ import {
   generateHeapSortSteps,
   generateQuickSortSteps,
 } from "@/utils/generate-steps";
-import Visualizer from "@/components/Visualizer";
+import Visualizer from "@/components/visualizer";
 
 import {
   DropdownMenu,

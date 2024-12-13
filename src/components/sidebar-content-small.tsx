@@ -1,5 +1,5 @@
-import Options from "./options";
-import Sidebar from "./sidebar";
+import Options from "@/components/options";
+import Sidebar from "@/components/sidebar";
 
 import { GraduationCap, Pause, Play, Settings } from "lucide-react";
 

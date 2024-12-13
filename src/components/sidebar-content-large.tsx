@@ -1,7 +1,7 @@
-import Controls from "./controls";
-import Options from "./options";
+import Controls from "@/components/controls";
+import Options from "@/components/options";
 import { Button } from "./ui/button";
-import Sidebar from "./sidebar";
+import Sidebar from "@/components/sidebar";
 
 import { ArrowUpRight, GraduationCap } from "lucide-react";
 

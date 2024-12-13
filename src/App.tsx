@@ -1,8 +1,8 @@
-import HomePage from "./pages/HomePage";
+import HomePage from "@/pages/HomePage";
 import { Route, Routes } from "react-router-dom";
 import Header from "@/components/header";
-import VisualizerView from "./pages/VisualizerView";
-import Learn from "./pages/Learn";
+import VisualizerView from "@/pages/VisualizerView";
+import Learn from "@/pages/Learn";
 import { ThemeProvider } from "@/components/theme-provider.tsx";
 
 export default function App() {
