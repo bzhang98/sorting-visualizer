@@ -80,11 +80,11 @@ const legendMap: { [key: string]: LegendItem[] } = {
     },
     {
       color: "bg-green-500",
-      label: "i",
+      label: "i (Comparing with Pivot)",
     },
     {
       color: "bg-red-500",
-      label: "j",
+      label: "j (Partition Boundary)",
     },
   ],
 };
