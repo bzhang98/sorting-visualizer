@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
-import Sidebar from "@/components/Sidebar";
+import Sidebar from "@/components/sidebar";
 
 import DataElement from "@/types/DataElement";
 import Settings from "@/types/Settings";

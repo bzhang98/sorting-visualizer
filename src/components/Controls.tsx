@@ -11,7 +11,7 @@ import {
   ChevronLast,
 } from "lucide-react";
 
-import Sidebar from "./Sidebar";
+import Sidebar from "./sidebar";
 
 const Controls: React.FC<ComponentProps<typeof Sidebar>> = ({
   settings,

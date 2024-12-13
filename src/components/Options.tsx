@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Slider } from "./ui/slider";
-import Sidebar from "./Sidebar";
+import Sidebar from "./sidebar";
 
 const Options: React.FC<ComponentProps<typeof Sidebar>> = ({
   settings,

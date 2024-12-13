@@ -16,13 +16,13 @@ import { Button } from "@/components/ui/button";
 
 const HomePage = () => {
   return (
-    <div className="flex-1 bg-gradient-to-b from-blue-50 to-blue-100">
+    <div className="flex-1">
       <div className="mx-auto max-w-4xl px-4 py-12">
         <div className="mb-16 text-center">
-          <h1 className="mb-4 text-4xl font-bold text-gray-900">
+          <h1 className="mb-4 text-4xl font-bold">
             Sorting Algorithm Visualizer
           </h1>
-          <p className="mb-8 text-xl text-gray-600">
+          <p className="mb-8 text-xl text-gray-500">
             Understand how different sorting algorithms work through interactive
             visualizations
           </p>
@@ -50,7 +50,7 @@ const HomePage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
+              <p className="text-gray-500">
                 Watch algorithms in action with adjustable controls
               </p>
             </CardContent>
@@ -64,7 +64,7 @@ const HomePage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
+              <p className="text-gray-500">
                 Understand the performance characteristics of each algorithm
               </p>
             </CardContent>
@@ -78,7 +78,7 @@ const HomePage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
+              <p className="text-gray-500">
                 View the underlying implementation of the visualizations
               </p>
             </CardContent>

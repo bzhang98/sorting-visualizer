@@ -1,16 +1,35 @@
 import { Home } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
+import ThemeToggle from "./theme-toggle";
+import { Button } from "./ui/button";
 
 const Header = () => {
   return (
-    <div className="flex flex-col items-center gap-6 border-b p-4 md:flex-row">
-      <NavLink to="/" aria-label="Home">
-        <Home className="h-5 w-5" />
-      </NavLink>
+    <div className="border-b p-4">
+      <ul className="flex flex-col items-center md:flex-row">
+        <li>
+          <Button variant="ghost" asChild>
+            <Link to="/">
+              <Home size={20} />
+            </Link>
+          </Button>
+        </li>
+        <div className="flex">
+          <li>
+            <Button variant="ghost" asChild>
+              <Link to="/visualizer">Visualize</Link>
+            </Button>
+          </li>
+          <li>
+            <Button variant="ghost" asChild>
+              <Link to="/learn">Learn</Link>
+            </Button>
+          </li>
+        </div>
+      </ul>
 
-      <div className="flex items-center gap-4">
-        <NavLink to="/visualizer">Visualize</NavLink>
-        <NavLink to="/learn">Learn</NavLink>
+      <div className="absolute right-4 top-4">
+        <ThemeToggle />
       </div>
     </div>
   );
