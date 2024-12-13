@@ -313,7 +313,7 @@ const generateQuickSortSteps = (data: DataElement[]): Step[] => {
       }
       j++;
 
-      steps.push({
+      const step = {
         highlights: [
           {
             elements: [{ id: data[i].id, index: i }],
@@ -328,27 +328,16 @@ const generateQuickSortSteps = (data: DataElement[]): Step[] => {
             color: "fill-yellow-500",
           },
         ],
-      });
+      };
 
       if (i > j) {
         steps.push({
           swapIndices: [i, j],
-          highlights: [
-            {
-              elements: [{ id: data[i].id, index: i }],
-              color: "fill-green-500",
-            },
-            {
-              elements: [{ id: data[j].id, index: j }],
-              color: "fill-red-500",
-            },
-            {
-              elements: [{ id: data[endIndex].id, index: endIndex }],
-              color: "fill-yellow-500",
-            },
-          ],
+          ...step,
         });
         [data[i], data[j]] = [data[j], data[i]];
+      } else {
+        steps.push(step);
       }
     }
     quickSort(data, steps, startIndex, j - 1);
