@@ -76,6 +76,7 @@ const Visualizer = ({
                 y={`${100 - element.value - 2}%`}
                 textAnchor="middle"
                 fontWeight="bold"
+                className="dark:fill-white"
               >
                 {element.value}
               </text>

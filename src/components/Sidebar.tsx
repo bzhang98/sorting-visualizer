@@ -46,7 +46,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = (props) => {
   const sourceLink = `https://github.com/bzhang98/sorting-visualizer/blob/main/src/sorting_functions/${props.settings.algorithm.toLowerCase().replace(" ", "-")}.ts`;
   return (
-    <div className="border-r border-gray-300 p-4">
+    <div className="border-r p-4">
       <div className="hidden lg:block">
         <h1 className="mt-4 text-lg font-semibold">Settings</h1>
         <p className="text-sm text-muted-foreground">
@@ -56,7 +56,7 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
           <h2 className="mb-2 text-lg font-semibold">Controls</h2>
           <Controls {...props} />
         </div>
-        <div className="mt-8 border-b border-gray-300 pb-4">
+        <div className="light:border-gray-300 mt-8 border-b pb-4">
           <h2 className="mb-2 text-lg font-semibold">Options</h2>
           <Options {...props} />
           <Button className="mt-4 w-full" onClick={props.generate}>
@@ -150,7 +150,7 @@ const Sidebar: React.FC<SidebarProps> = (props) => {
       <Button className="lg:hidden" onClick={props.togglePlay}>
         {props.isPlaying ? <Pause size={16} /> : <Play size={16} />}
       </Button>
-      <div className="mt-4 flex flex-col gap-2 border-t border-gray-300 pt-4 lg:hidden">
+      <div className="mt-4 flex flex-col gap-2 border-t lg:hidden">
         <Button variant="outline" asChild>
           <a
             className="flex w-full items-center"
